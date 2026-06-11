@@ -1,0 +1,48 @@
+{
+  "remedies": {
+    "Early Blight": [
+      {"name": "Neem Oil Spray", "preparation": "Mix 5ml neem oil + 1ml liquid soap in 1L water.", "application": "Spray on both leaf sides early morning.", "frequency": "Every 5-7 days"},
+      {"name": "Baking Soda Solution", "preparation": "1 tbsp baking soda + 1 tbsp oil + soap drops in 4L water.", "application": "Spray on affected leaves.", "frequency": "Every 7 days"},
+      {"name": "Compost Tea", "preparation": "Soak 1kg compost in 10L water 3-5 days. Strain.", "application": "Spray on leaves or soil drench.", "frequency": "Every 10-14 days"},
+      {"name": "Garlic Extract", "preparation": "Crush 10 garlic cloves, soak in 1L water overnight. Strain.", "application": "Spray on affected plants.", "frequency": "Every 5-7 days"}
+    ],
+    "Late Blight": [
+      {"name": "Bordeaux Mixture", "preparation": "100g copper sulfate + 100g lime in 10L water.", "application": "Spray covering all leaf surfaces.", "frequency": "Every 5-7 days"},
+      {"name": "Neem + Turmeric Paste", "preparation": "5ml neem oil + 2g turmeric + 1ml soap in 1L water.", "application": "Spray on leaves and stems.", "frequency": "Every 5 days"},
+      {"name": "Trichoderma Bio-agent", "preparation": "5g Trichoderma viride in 1L water.", "application": "Spray and soil drench.", "frequency": "Every 14 days"}
+    ],
+    "Bacterial Spot": [
+      {"name": "Neem Oil Spray", "preparation": "5ml neem oil + 1ml soap in 1L water.", "application": "Spray both leaf surfaces.", "frequency": "Every 5-7 days"},
+      {"name": "Garlic-Ginger Extract", "preparation": "50g garlic + 50g ginger in 2L water 24hrs. Strain.", "application": "Spray on affected plants.", "frequency": "Every 7 days"}
+    ],
+    "Leaf Mold": [
+      {"name": "Baking Soda + Milk", "preparation": "1 tbsp baking soda + 500ml milk in 4L water.", "application": "Spray mornings.", "frequency": "Every 7-10 days"},
+      {"name": "Neem Oil Spray", "preparation": "5ml neem oil + 1ml soap in 1L water.", "application": "Spray both sides.", "frequency": "Every 7 days"}
+    ],
+    "Mosaic Virus": [
+      {"name": "Neem Oil (Vector Control)", "preparation": "5ml neem oil + 1ml soap in 1L water.", "application": "Spray to control aphids/whiteflies.", "frequency": "Every 5-7 days"},
+      {"name": "Milk Spray", "preparation": "1 part milk to 9 parts water.", "application": "Spray on plants.", "frequency": "Every 7 days"}
+    ],
+    "Powdery Mildew": [
+      {"name": "Milk Spray", "preparation": "1 part milk to 2 parts water.", "application": "Spray in sunlight.", "frequency": "Every 3-5 days"},
+      {"name": "Baking Soda Solution", "preparation": "1 tbsp baking soda + oil + soap in 4L water.", "application": "Spray affected areas.", "frequency": "Every 7 days"},
+      {"name": "Neem Oil Spray", "preparation": "5ml neem oil + 1ml soap in 1L water.", "application": "Spray both surfaces.", "frequency": "Every 7 days"}
+    ],
+    "Rust": [
+      {"name": "Neem Oil Spray", "preparation": "5ml neem oil + 1ml soap in 1L water.", "application": "Spray thoroughly.", "frequency": "Every 5-7 days"},
+      {"name": "Baking Soda + Oil", "preparation": "1 tbsp baking soda + 1 tbsp oil in 4L water.", "application": "Spray affected leaves.", "frequency": "Every 7-10 days"}
+    ],
+    "Anthracnose": [
+      {"name": "Neem Oil Spray", "preparation": "5ml neem oil + 1ml soap in 1L water.", "application": "Spray on fruits, leaves, stems.", "frequency": "Every 7 days"},
+      {"name": "Hot Water Treatment", "preparation": "Heat water to 52°C.", "application": "Dip fruits 10 min. Air dry.", "frequency": "Once at harvest"}
+    ],
+    "Bacterial Wilt": [
+      {"name": "Trichoderma Soil", "preparation": "50g Trichoderma viride + 5kg FYM per acre.", "application": "Mix into soil before planting.", "frequency": "Once before planting"},
+      {"name": "Neem Cake Amendment", "preparation": "200g neem cake per sq meter.", "application": "Incorporate into soil.", "frequency": "Once before planting"}
+    ],
+    "Healthy": [
+      {"name": "Preventive Neem Oil", "preparation": "3ml neem oil + 1ml soap in 1L water.", "application": "Light spray during disease-prone seasons.", "frequency": "Every 14 days"},
+      {"name": "Compost Tea Foliar", "preparation": "1kg compost in 10L water 3-5 days.", "application": "Spray on leaves.", "frequency": "Every 14-21 days"}
+    ]
+  }
+}

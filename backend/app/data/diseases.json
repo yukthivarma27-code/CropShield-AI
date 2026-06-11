@@ -1,0 +1,74 @@
+{
+  "diseases": [
+    {
+      "name": "Healthy",
+      "crops": ["tomato", "potato", "rice", "maize", "wheat", "cotton", "banana", "mango", "chili"],
+      "symptoms": "No visible symptoms. Leaves are green, firm, and free from spots or discoloration.",
+      "description": "The plant is healthy with no signs of disease or pest damage.",
+      "severity_info": "No infection detected."
+    },
+    {
+      "name": "Early Blight",
+      "crops": ["tomato", "potato"],
+      "symptoms": "Dark brown to black concentric rings (target-like spots) on older leaves. Yellowing around spots. Leaves may curl and drop.",
+      "description": "Caused by Alternaria solani fungus. Common in warm, humid conditions. Spreads through wind, rain splash, and infected plant debris.",
+      "severity_info": "Can cause 20-50% yield loss if untreated. Early detection is critical."
+    },
+    {
+      "name": "Late Blight",
+      "crops": ["tomato", "potato"],
+      "symptoms": "Water-soaked, pale green to dark brown lesions on leaves. White mold growth on leaf undersides. Rapid wilting.",
+      "description": "Caused by Phytophthora infestans. Thrives in cool, wet weather. Extremely destructive — can destroy entire crops in days.",
+      "severity_info": "Can cause 100% yield loss. Immediate action required upon detection."
+    },
+    {
+      "name": "Bacterial Spot",
+      "crops": ["tomato", "chili"],
+      "symptoms": "Small, water-soaked spots on leaves that turn brown/black. Spots may have yellow halos. Fruit may develop raised, scab-like lesions.",
+      "description": "Caused by Xanthomonas bacteria. Spreads through contaminated seeds, rain splash, and overhead irrigation.",
+      "severity_info": "Can reduce fruit quality and yield by 10-50%."
+    },
+    {
+      "name": "Leaf Mold",
+      "crops": ["tomato"],
+      "symptoms": "Pale green to yellowish spots on upper leaf surface. Olive-green to brown velvety mold on leaf undersides.",
+      "description": "Caused by Passalora fulva (formerly Cladosporium fulvum). Favored by high humidity (>85%) and moderate temperatures.",
+      "severity_info": "Reduces photosynthesis and can cause 10-30% yield loss."
+    },
+    {
+      "name": "Mosaic Virus",
+      "crops": ["tomato", "chili", "banana", "maize"],
+      "symptoms": "Mottled light and dark green patterns on leaves. Leaf distortion, curling, and reduced size. Stunted plant growth.",
+      "description": "Viral infection spread by aphids, whiteflies, and contaminated tools. No cure exists — management focuses on prevention.",
+      "severity_info": "Can cause 20-70% yield loss depending on infection timing."
+    },
+    {
+      "name": "Powdery Mildew",
+      "crops": ["wheat", "mango", "chili", "cotton"],
+      "symptoms": "White, powdery fungal growth on leaf surfaces. Leaves may yellow, curl, and eventually drop.",
+      "description": "Caused by various Erysiphales fungi. Favored by warm days and cool nights with moderate humidity.",
+      "severity_info": "Can reduce yield by 10-40% depending on severity and crop stage."
+    },
+    {
+      "name": "Rust",
+      "crops": ["wheat", "maize", "cotton"],
+      "symptoms": "Orange-brown to reddish-brown pustules on leaves and stems. Pustules release powdery spores when touched.",
+      "description": "Caused by Puccinia fungi. Spreads rapidly through wind-borne spores. Favored by moderate temperatures and high humidity.",
+      "severity_info": "Can cause 10-70% yield loss. Epidemics can be devastating."
+    },
+    {
+      "name": "Anthracnose",
+      "crops": ["mango", "banana", "chili", "cotton"],
+      "symptoms": "Dark, sunken lesions on fruits, leaves, and stems. Lesions may have concentric rings. Pink/orange spore masses in wet conditions.",
+      "description": "Caused by Colletotrichum fungi. Spread by rain splash and wind. Common in warm, humid tropical conditions.",
+      "severity_info": "Can cause 10-80% post-harvest losses in fruits."
+    },
+    {
+      "name": "Bacterial Wilt",
+      "crops": ["tomato", "potato", "banana", "chili"],
+      "symptoms": "Sudden wilting of entire plant or individual branches. No yellowing before wilting. Brown discoloration of vascular tissue.",
+      "description": "Caused by Ralstonia solanacearum. Soil-borne pathogen that enters through wounds. Thrives in warm, wet soils.",
+      "severity_info": "Can cause 100% loss in susceptible varieties. Very difficult to control once established."
+    }
+  ]
+}

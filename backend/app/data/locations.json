@@ -1,0 +1,29 @@
+{
+  "locations": {
+    "Andhra Pradesh": {
+      "districts": ["Visakhapatnam", "Vijayawada", "Guntur", "Kurnool", "Nellore", "Tirupati", "Anantapur", "Kakinada", "Eluru", "Ongole"],
+      "common_crops": ["rice", "cotton", "chili", "mango", "banana", "maize"],
+      "soil_types": ["Red soil", "Black soil", "Alluvial soil", "Laterite soil"]
+    },
+    "Telangana": {
+      "districts": ["Hyderabad", "Warangal", "Nizamabad", "Karimnagar", "Khammam", "Nalgonda", "Adilabad", "Medak", "Rangareddy", "Mahabubnagar"],
+      "common_crops": ["rice", "cotton", "maize", "chili", "mango", "tomato"],
+      "soil_types": ["Red soil", "Black soil", "Laterite soil"]
+    },
+    "Karnataka": {
+      "districts": ["Bengaluru", "Mysuru", "Hubli-Dharwad", "Mangaluru", "Belagavi", "Kalaburagi", "Shimoga", "Tumkur", "Raichur", "Hassan"],
+      "common_crops": ["rice", "cotton", "maize", "mango", "banana", "chili", "potato"],
+      "soil_types": ["Red soil", "Black soil", "Laterite soil", "Alluvial soil"]
+    },
+    "Tamil Nadu": {
+      "districts": ["Chennai", "Coimbatore", "Madurai", "Salem", "Tiruchirappalli", "Tirunelveli", "Erode", "Vellore", "Thanjavur", "Dindigul"],
+      "common_crops": ["rice", "banana", "mango", "cotton", "maize", "chili"],
+      "soil_types": ["Red soil", "Black soil", "Alluvial soil", "Sandy soil"]
+    },
+    "Maharashtra": {
+      "districts": ["Mumbai", "Pune", "Nagpur", "Nashik", "Aurangabad", "Solapur", "Kolhapur", "Amravati", "Sangli", "Jalgaon"],
+      "common_crops": ["cotton", "wheat", "rice", "mango", "banana", "tomato", "chili"],
+      "soil_types": ["Black soil", "Red soil", "Laterite soil", "Alluvial soil"]
+    }
+  }
+}

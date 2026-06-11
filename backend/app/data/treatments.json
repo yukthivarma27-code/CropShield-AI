@@ -1,0 +1,283 @@
+{
+  "treatments": {
+    "Early Blight": {
+      "chemical": [
+        {
+          "name": "Mancozeb 75% WP",
+          "active_ingredient": "Mancozeb",
+          "dosage": "2.5 g per litre of water",
+          "spray_interval": "Every 7-10 days",
+          "precautions": "Wear protective gloves and mask. Do not spray during windy conditions. Maintain 7-day pre-harvest interval."
+        },
+        {
+          "name": "Chlorothalonil 75% WP",
+          "active_ingredient": "Chlorothalonil",
+          "dosage": "2 g per litre of water",
+          "spray_interval": "Every 10-14 days",
+          "precautions": "Avoid skin contact. Do not apply near water bodies. 14-day pre-harvest interval."
+        },
+        {
+          "name": "Azoxystrobin 23% SC",
+          "active_ingredient": "Azoxystrobin",
+          "dosage": "1 ml per litre of water",
+          "spray_interval": "Every 14 days",
+          "precautions": "Do not mix with alkaline pesticides. Use within 4 hours of preparation."
+        }
+      ],
+      "preventive": [
+        "Practice 3-year crop rotation with non-solanaceous crops",
+        "Remove and destroy infected plant debris after harvest",
+        "Use disease-resistant varieties (e.g., Arka Rakshak, Arka Samrat)",
+        "Maintain proper plant spacing (60cm × 45cm) for air circulation",
+        "Avoid overhead irrigation — use drip irrigation",
+        "Apply mulch to prevent soil splash onto lower leaves",
+        "Monitor fields weekly during warm, humid weather"
+      ]
+    },
+    "Late Blight": {
+      "chemical": [
+        {
+          "name": "Metalaxyl 8% + Mancozeb 64% WP",
+          "active_ingredient": "Metalaxyl + Mancozeb",
+          "dosage": "2.5 g per litre of water",
+          "spray_interval": "Every 7 days during active infection",
+          "precautions": "Alternate with contact fungicides to prevent resistance. Wear full protective equipment."
+        },
+        {
+          "name": "Cymoxanil 8% + Mancozeb 64% WP",
+          "active_ingredient": "Cymoxanil + Mancozeb",
+          "dosage": "3 g per litre of water",
+          "spray_interval": "Every 5-7 days",
+          "precautions": "Apply preventively before disease appears. Do not exceed 3 applications per season."
+        },
+        {
+          "name": "Copper Oxychloride 50% WP",
+          "active_ingredient": "Copper Oxychloride",
+          "dosage": "3 g per litre of water",
+          "spray_interval": "Every 7-10 days",
+          "precautions": "Do not mix with lime sulfur. May cause phytotoxicity in hot weather."
+        }
+      ],
+      "preventive": [
+        "Plant certified disease-free seed tubers",
+        "Use resistant varieties (e.g., Kufri Jyoti, Kufri Girdhari)",
+        "Destroy volunteer plants and cull piles",
+        "Hill up potatoes to protect tubers from spore wash",
+        "Avoid planting in low-lying, waterlogged areas",
+        "Monitor weather — spray prophylactically when conditions favor disease",
+        "Destroy infected crop residues by burning"
+      ]
+    },
+    "Bacterial Spot": {
+      "chemical": [
+        {
+          "name": "Copper Hydroxide 77% WP",
+          "active_ingredient": "Copper Hydroxide",
+          "dosage": "2 g per litre of water",
+          "spray_interval": "Every 7-10 days",
+          "precautions": "Avoid excessive copper applications — can cause phytotoxicity. Do not apply in temperatures above 35°C."
+        },
+        {
+          "name": "Streptomycin Sulphate 9% + Tetracycline Hydrochloride 1%",
+          "active_ingredient": "Streptomycin + Tetracycline",
+          "dosage": "0.5 g per litre of water",
+          "spray_interval": "Every 10-14 days",
+          "precautions": "Use only as directed. Overuse promotes antibiotic resistance. 14-day pre-harvest interval."
+        }
+      ],
+      "preventive": [
+        "Use certified disease-free seeds and transplants",
+        "Avoid overhead irrigation — use drip irrigation",
+        "Practice 2-3 year crop rotation",
+        "Disinfect tools and equipment regularly",
+        "Remove and destroy infected plants immediately",
+        "Maintain proper plant spacing for air circulation"
+      ]
+    },
+    "Leaf Mold": {
+      "chemical": [
+        {
+          "name": "Carbendazim 50% WP",
+          "active_ingredient": "Carbendazim",
+          "dosage": "1 g per litre of water",
+          "spray_interval": "Every 10-14 days",
+          "precautions": "Alternate with other fungicide groups to prevent resistance. Wear protective mask."
+        },
+        {
+          "name": "Difenoconazole 25% EC",
+          "active_ingredient": "Difenoconazole",
+          "dosage": "0.5 ml per litre of water",
+          "spray_interval": "Every 14 days",
+          "precautions": "Do not exceed 3 applications per season. 7-day pre-harvest interval."
+        }
+      ],
+      "preventive": [
+        "Ensure good ventilation in greenhouses",
+        "Reduce humidity below 85% through proper spacing",
+        "Remove lower infected leaves to improve air circulation",
+        "Use resistant varieties when available",
+        "Avoid wetting leaves during irrigation",
+        "Apply preventive fungicide at first sign of symptoms"
+      ]
+    },
+    "Mosaic Virus": {
+      "chemical": [
+        {
+          "name": "Imidacloprid 17.8% SL (for vector control)",
+          "active_ingredient": "Imidacloprid",
+          "dosage": "0.5 ml per litre of water",
+          "spray_interval": "Every 14-21 days",
+          "precautions": "Controls aphid/whitefly vectors only — no cure for virus. Toxic to bees — do not spray during flowering."
+        }
+      ],
+      "preventive": [
+        "Use virus-free certified seeds and transplants",
+        "Control aphid and whitefly vectors with yellow sticky traps",
+        "Remove and destroy infected plants immediately (rogue out)",
+        "Wash hands and disinfect tools between plants",
+        "Use reflective mulches to repel aphids",
+        "Plant barrier crops around field borders",
+        "Use resistant varieties when available"
+      ]
+    },
+    "Powdery Mildew": {
+      "chemical": [
+        {
+          "name": "Sulfur 80% WP",
+          "active_ingredient": "Sulfur",
+          "dosage": "3 g per litre of water",
+          "spray_interval": "Every 10-14 days",
+          "precautions": "Do not apply in temperatures above 35°C — may cause leaf burn. Avoid mixing with oil-based products."
+        },
+        {
+          "name": "Hexaconazole 5% EC",
+          "active_ingredient": "Hexaconazole",
+          "dosage": "2 ml per litre of water",
+          "spray_interval": "Every 14 days",
+          "precautions": "Maximum 3 applications per season. 14-day pre-harvest interval."
+        },
+        {
+          "name": "Propiconazole 25% EC",
+          "active_ingredient": "Propiconazole",
+          "dosage": "1 ml per litre of water",
+          "spray_interval": "Every 14 days",
+          "precautions": "Systemic fungicide — effective for 14-21 days. Wear gloves during application."
+        }
+      ],
+      "preventive": [
+        "Use resistant varieties when available",
+        "Maintain proper plant spacing for air circulation",
+        "Avoid excessive nitrogen fertilization",
+        "Remove infected leaves and debris",
+        "Apply sulfur-based fungicides preventively in susceptible periods",
+        "Prune to improve light penetration and air flow"
+      ]
+    },
+    "Rust": {
+      "chemical": [
+        {
+          "name": "Propiconazole 25% EC",
+          "active_ingredient": "Propiconazole",
+          "dosage": "1 ml per litre of water",
+          "spray_interval": "Every 14 days",
+          "precautions": "Apply at first sign of pustules. Maximum 2 applications per season."
+        },
+        {
+          "name": "Tebuconazole 25.9% EC",
+          "active_ingredient": "Tebuconazole",
+          "dosage": "1 ml per litre of water",
+          "spray_interval": "Every 14-21 days",
+          "precautions": "Systemic fungicide. Wear protective equipment during application."
+        },
+        {
+          "name": "Mancozeb 75% WP",
+          "active_ingredient": "Mancozeb",
+          "dosage": "2.5 g per litre of water",
+          "spray_interval": "Every 7-10 days",
+          "precautions": "Contact fungicide — ensure thorough coverage. 7-day pre-harvest interval."
+        }
+      ],
+      "preventive": [
+        "Plant rust-resistant varieties",
+        "Destroy volunteer and alternate host plants",
+        "Early planting to avoid peak rust season",
+        "Balanced fertilization — avoid excess nitrogen",
+        "Monitor fields regularly during favorable conditions",
+        "Practice crop rotation with non-host crops"
+      ]
+    },
+    "Anthracnose": {
+      "chemical": [
+        {
+          "name": "Carbendazim 50% WP",
+          "active_ingredient": "Carbendazim",
+          "dosage": "1 g per litre of water",
+          "spray_interval": "Every 10-14 days",
+          "precautions": "Begin spraying before flowering. Alternate with Mancozeb to prevent resistance."
+        },
+        {
+          "name": "Copper Oxychloride 50% WP",
+          "active_ingredient": "Copper Oxychloride",
+          "dosage": "3 g per litre of water",
+          "spray_interval": "Every 7-10 days",
+          "precautions": "Apply during dry weather for best results. Avoid excessive use."
+        },
+        {
+          "name": "Thiophanate-methyl 70% WP",
+          "active_ingredient": "Thiophanate-methyl",
+          "dosage": "1 g per litre of water",
+          "spray_interval": "Every 14 days",
+          "precautions": "Systemic fungicide. Do not use more than 3 times consecutively."
+        }
+      ],
+      "preventive": [
+        "Harvest fruits at proper maturity — avoid injuries during handling",
+        "Hot water treatment of fruits at 52°C for 10 minutes",
+        "Remove and destroy infected plant parts and fallen fruits",
+        "Improve air circulation through proper pruning",
+        "Avoid overhead irrigation during fruit development",
+        "Use clean planting material from disease-free sources"
+      ]
+    },
+    "Bacterial Wilt": {
+      "chemical": [
+        {
+          "name": "Streptomycin Sulphate",
+          "active_ingredient": "Streptomycin",
+          "dosage": "0.5 g per litre of water (soil drench)",
+          "spray_interval": "Single application at transplanting",
+          "precautions": "Soil drench around plant base. Limited effectiveness once disease is established."
+        },
+        {
+          "name": "Bleaching Powder (Calcium Hypochlorite)",
+          "active_ingredient": "Calcium Hypochlorite",
+          "dosage": "20 g per square meter (soil treatment)",
+          "spray_interval": "Apply 2 weeks before planting",
+          "precautions": "Soil disinfectant only. Do not apply to growing plants. Allow soil to rest before planting."
+        }
+      ],
+      "preventive": [
+        "Use resistant varieties (critical for management)",
+        "Practice 4-5 year crop rotation with non-host crops (cereals, grains)",
+        "Avoid planting in previously infested fields",
+        "Improve soil drainage — avoid waterlogging",
+        "Use raised beds for better drainage",
+        "Solarize soil before planting in hot months",
+        "Remove and destroy infected plants immediately — do not compost",
+        "Disinfect tools with 10% bleach solution between plants"
+      ]
+    },
+    "Healthy": {
+      "chemical": [],
+      "preventive": [
+        "Continue regular monitoring for early disease detection",
+        "Maintain balanced fertilization program",
+        "Practice crop rotation every season",
+        "Keep fields clean and free of weeds",
+        "Ensure proper irrigation management",
+        "Use certified disease-free seeds",
+        "Apply preventive bio-fungicides if weather conditions are favorable for disease"
+      ]
+    }
+  }
+}
