@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Mic, MicOff, Volume2, VolumeX, MessageSquare } from 'lucide-react';
+import { Mic, MicOff, VolumeX } from 'lucide-react';
 import { Card } from '../common/Card';
 import { Button } from '../common/Button';
 import { speechService } from '../../services/speechService';

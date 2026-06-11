@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useCamera } from '../../hooks/useCamera';
 import { Button } from '../common/Button';
-import { Camera, X, RefreshCw } from 'lucide-react';
+import { Camera, X } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
 
 interface CameraCaptureProps {

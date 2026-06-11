@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { Upload, Camera, FileImage } from 'lucide-react';
+import { Upload, Camera } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
 
 interface ImageUploadProps {

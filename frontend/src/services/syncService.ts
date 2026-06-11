@@ -1,4 +1,4 @@
-import { db, queueOfflineAction } from './offlineDb';
+import { db } from './offlineDb';
 import { checkOnlineStatus } from './api';
 
 export async function syncOfflineQueue() {

@@ -2,7 +2,7 @@ import React from 'react';
 import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
 import { WeatherWidget } from '../components/weather/WeatherWidget';
-import { Camera, BookOpen, AlertCircle, History, Sprout } from 'lucide-react';
+import { Camera, AlertCircle, History, Sprout } from 'lucide-react';
 import { PageType } from '../store/appStore';
 import { useTranslation } from '../hooks/useTranslation';
 

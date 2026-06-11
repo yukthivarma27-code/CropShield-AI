@@ -12,7 +12,7 @@ export interface PredictionResult {
   severity_percentage: number;
   top_3_predictions: PredictionItem[];
   symptoms: string;
-  description: str;
+  description: string;
   image_url: string;
   gradcam_url?: string;
   created_at: string;

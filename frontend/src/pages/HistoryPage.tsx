@@ -4,7 +4,7 @@ import { PredictionResult } from '../types';
 import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
 import { useTranslation } from '../hooks/useTranslation';
-import { Calendar, Tag, ChevronRight, History } from 'lucide-react';
+import { Calendar, ChevronRight, History } from 'lucide-react';
 import { PageType } from '../store/appStore';
 
 interface HistoryPageProps {
