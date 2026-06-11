@@ -31,12 +31,11 @@ rembg==2.0.62
 
 # Weather
 
-# httpx removed due to conflict with googletrans
+httpx==0.28.1
 
 # Translation & Voice
 
 gTTS==2.5.4
-googletrans==4.0.0rc1
 
 # Reports
 
