@@ -1,0 +1,28 @@
+{
+  "buildCommand": "cd frontend && npm install && npm run build",
+  "outputDirectory": "frontend/dist",
+  "installCommand": "cd frontend && npm install",
+  "functions": {
+    "api/index.py": {
+      "maxDuration": 30,
+      "memory": 1024,
+      "includeFiles": "backend/**"
+    }
+  },
+  "rewrites": [
+    { "source": "/", "destination": "/api/index.py" },
+    { "source": "/predict", "destination": "/api/index.py" },
+    { "source": "/predict/:path*", "destination": "/api/index.py" },
+    { "source": "/recommendation", "destination": "/api/index.py" },
+    { "source": "/recommendation/:path*", "destination": "/api/index.py" },
+    { "source": "/treatment/:path*", "destination": "/api/index.py" },
+    { "source": "/history/:path*", "destination": "/api/index.py" },
+    { "source": "/weather", "destination": "/api/index.py" },
+    { "source": "/weather/:path*", "destination": "/api/index.py" },
+    { "source": "/severity", "destination": "/api/index.py" },
+    { "source": "/translate", "destination": "/api/index.py" },
+    { "source": "/voice/:path*", "destination": "/api/index.py" },
+    { "source": "/uploads/:path*", "destination": "/api/index.py" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
