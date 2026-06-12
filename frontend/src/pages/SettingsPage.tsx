@@ -25,8 +25,11 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ profile, updateProfi
   useEffect(() => {
     setName(profile.name || '');
     setPhone(profile.phone || '');
-    setState(profile.state || 'Andhra Pradesh');
-    setDistrict(profile.district || 'Visakhapatnam');
+    const savedState = profile.state || 'Andhra Pradesh';
+    setState(savedState);
+    const districts = indiaLocations[savedState] || [];
+    const savedDistrict = profile.district || '';
+    setDistrict(districts.includes(savedDistrict) ? savedDistrict : '');
   }, [profile]);
 
   const handleStateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {

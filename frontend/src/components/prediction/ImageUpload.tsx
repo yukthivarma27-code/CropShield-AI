@@ -11,9 +11,10 @@ interface ImageUploadProps {
   onCameraClick: () => void;
   error?: string;
   onClearError?: () => void;
+  onError?: (error: string) => void;
 }
 
-export const ImageUpload: React.FC<ImageUploadProps> = ({ onImageSelected, onCameraClick, error, onClearError }) => {
+export const ImageUpload: React.FC<ImageUploadProps> = ({ onImageSelected, onCameraClick, error, onClearError, onError }) => {
   const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [dragOver, setDragOver] = useState(false);
@@ -31,14 +32,15 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({ onImageSelected, onCam
     return null;
   };
 
-  const handleFile = (file: File) => {
+  const handleFile = useCallback((file: File) => {
     if (onClearError) onClearError();
     const validationError = validateFile(file);
     if (validationError) {
+      if (onError) onError(validationError);
       return;
     }
     onImageSelected(file);
-  };
+  }, [onClearError, onError, onImageSelected]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -54,7 +56,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({ onImageSelected, onCam
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       handleFile(e.dataTransfer.files[0]);
     }
-  }, [onImageSelected, onClearError]);
+  }, [handleFile]);
 
   const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();

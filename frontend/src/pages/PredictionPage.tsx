@@ -186,6 +186,7 @@ export const PredictionPage: React.FC<PredictionPageProps> = ({
           onCameraClick={() => setShowCamera(true)}
           error={imageError}
           onClearError={() => setImageError('')}
+          onError={(error) => setImageError(error)}
         />
       )}
 
