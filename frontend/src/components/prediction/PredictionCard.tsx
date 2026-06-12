@@ -6,9 +6,10 @@ import { Card } from '../common/Card';
 
 interface PredictionCardProps {
   result: PredictionResult;
+  imageUrl?: string | null;
 }
 
-export const PredictionCard: React.FC<PredictionCardProps> = ({ result }) => {
+export const PredictionCard: React.FC<PredictionCardProps> = ({ result, imageUrl }) => {
   const { t } = useTranslation();
   const isHealthy = result.disease.toLowerCase() === 'healthy';
 
@@ -38,7 +39,7 @@ export const PredictionCard: React.FC<PredictionCardProps> = ({ result }) => {
       {/* Main image view */}
       <div className="my-4 aspect-[4/3] rounded-2xl overflow-hidden border border-gray-100 dark:border-zinc-800 relative bg-zinc-900">
         <img
-          src={result.image_url}
+          src={imageUrl || result.image_url}
           alt={result.disease}
           className="w-full h-full object-cover"
         />

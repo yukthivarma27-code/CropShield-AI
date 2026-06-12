@@ -23,7 +23,7 @@ The system is designed with an offline-first architecture to remain functional i
 - **Machine Learning**: TensorFlow/Keras, EfficientNetB3, TensorFlow Lite, ONNX
 - **Backend**: FastAPI, Python, SQLite/PostgreSQL
 - **Frontend**: React, Tailwind CSS, TypeScript, Dexie.js (Offline Cache)
-- **DevOps**: Docker, Docker-compose, GitHub Actions
+- **DevOps**: GitHub Actions
 
 ---
 
@@ -49,17 +49,7 @@ npm run dev
 ```
 Open `http://localhost:5173` in your browser.
 
----
 
-### 2. Docker Setup
-Build and run the entire stack (PostgreSQL + FastAPI + Nginx Frontend) with Docker Compose:
-```bash
-docker-compose up --build
-```
-- Frontend: `http://localhost`
-- Backend API: `http://localhost:8000`
-
----
 
 ## Offline Caching Architecture
 When a farmer scans a leaf in a field without internet connection:
