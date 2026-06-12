@@ -21,6 +21,8 @@
     { "source": "/weather/:path*", "destination": "/api/index.py" },
     { "source": "/severity", "destination": "/api/index.py" },
     { "source": "/translate", "destination": "/api/index.py" },
+    { "source": "/translate/:path*", "destination": "/api/index.py" },
+    { "source": "/severity/:path*", "destination": "/api/index.py" },
     { "source": "/voice/:path*", "destination": "/api/index.py" },
     { "source": "/uploads/:path*", "destination": "/api/index.py" },
     { "source": "/(.*)", "destination": "/index.html" }

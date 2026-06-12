@@ -5,7 +5,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
 export async function checkOnlineStatus(): Promise<boolean> {
   try {
-    const res = await fetch(`${API_BASE_URL}/`, { method: 'GET', signal: AbortSignal.timeout(2000) });
+    const res = await fetch(`${API_BASE_URL}/predict/classes`, { method: 'GET', signal: AbortSignal.timeout(2000) });
     return res.ok;
   } catch {
     return false;
@@ -60,7 +60,7 @@ export async function predictCropDisease(
   const result = await res.json();
   const fullResult = {
     ...result,
-    image_url: `${API_BASE_URL}${result.image_url}`,
+    image_url: result.image_url ? `${API_BASE_URL}${result.image_url}` : '',
   };
 
   // Cache results locally
