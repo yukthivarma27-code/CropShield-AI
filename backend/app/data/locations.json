@@ -1,29 +1,184 @@
 {
   "locations": {
+    "Andaman and Nicobar Islands": {
+      "districts": ["Port Blair", "South Andaman", "North and Middle Andaman", "Nicobar"],
+      "common_crops": ["coconut", "arecanut", "rice", "banana", "spices"],
+      "soil_types": ["Red soil", "Sandy soil", "Laterite soil"]
+    },
     "Andhra Pradesh": {
-      "districts": ["Visakhapatnam", "Vijayawada", "Guntur", "Kurnool", "Nellore", "Tirupati", "Anantapur", "Kakinada", "Eluru", "Ongole"],
+      "districts": ["Visakhapatnam", "Vijayawada", "Guntur", "Kurnool", "Nellore", "Tirupati", "Anantapur"],
       "common_crops": ["rice", "cotton", "chili", "mango", "banana", "maize"],
       "soil_types": ["Red soil", "Black soil", "Alluvial soil", "Laterite soil"]
     },
-    "Telangana": {
-      "districts": ["Hyderabad", "Warangal", "Nizamabad", "Karimnagar", "Khammam", "Nalgonda", "Adilabad", "Medak", "Rangareddy", "Mahabubnagar"],
-      "common_crops": ["rice", "cotton", "maize", "chili", "mango", "tomato"],
-      "soil_types": ["Red soil", "Black soil", "Laterite soil"]
+    "Arunachal Pradesh": {
+      "districts": ["Itanagar", "Naharlagun", "Pasighat", "Tawang", "Ziro"],
+      "common_crops": ["rice", "maize", "millet", "potato", "horticulture"],
+      "soil_types": ["Red soil", "Alluvial soil", "Mountain soil"]
+    },
+    "Assam": {
+      "districts": ["Guwahati", "Silchar", "Dibrugarh", "Jorhat", "Nagaon", "Tezpur"],
+      "common_crops": ["rice", "tea", "jute", "maize", "potato", "mustard"],
+      "soil_types": ["Alluvial soil", "Laterite soil", "Red soil"]
+    },
+    "Bihar": {
+      "districts": ["Patna", "Gaya", "Bhagalpur", "Muzaffarpur", "Purnia", "Darbhanga"],
+      "common_crops": ["rice", "wheat", "maize", "potato", "sugarcane", "jute"],
+      "soil_types": ["Alluvial soil", "Sandy soil", "Red soil"]
+    },
+    "Chandigarh": {
+      "districts": ["Chandigarh"],
+      "common_crops": ["wheat", "rice", "maize"],
+      "soil_types": ["Alluvial soil"]
+    },
+    "Chhattisgarh": {
+      "districts": ["Raipur", "Bhilai", "Bilaspur", "Korba", "Durg", "Rajnandgaon"],
+      "common_crops": ["rice", "maize", "wheat", "cotton", "sugarcane", "pulses"],
+      "soil_types": ["Red soil", "Yellow soil", "Black soil", "Alluvial soil"]
+    },
+    "Dadra and Nagar Haveli and Daman and Diu": {
+      "districts": ["Silvassa", "Daman", "Diu"],
+      "common_crops": ["rice", "ragi", "banana", "mango", "sugarcane"],
+      "soil_types": ["Red soil", "Sandy soil"]
+    },
+    "Delhi (NCT)": {
+      "districts": ["New Delhi", "Central Delhi", "South Delhi", "East Delhi", "West Delhi", "North Delhi"],
+      "common_crops": ["wheat", "rice", "millet", "sugarcane"],
+      "soil_types": ["Alluvial soil", "Sandy soil"]
+    },
+    "Goa": {
+      "districts": ["North Goa", "South Goa", "Panaji", "Margao"],
+      "common_crops": ["rice", "coconut", "cashew", "sugarcane", "banana"],
+      "soil_types": ["Laterite soil", "Red soil", "Alluvial soil"]
+    },
+    "Gujarat": {
+      "districts": ["Ahmedabad", "Surat", "Vadodara", "Rajkot", "Bhavnagar", "Jamnagar"],
+      "common_crops": ["cotton", "rice", "wheat", "groundnut", "sugarcane", "maize"],
+      "soil_types": ["Black soil", "Red soil", "Sandy soil", "Alluvial soil"]
+    },
+    "Haryana": {
+      "districts": ["Chandigarh", "Faridabad", "Gurugram", "Panipat", "Hisar", "Karnal"],
+      "common_crops": ["wheat", "rice", "sugarcane", "cotton", "mustard", "maize"],
+      "soil_types": ["Alluvial soil", "Sandy soil", "Red soil"]
+    },
+    "Himachal Pradesh": {
+      "districts": ["Shimla", "Dharamshala", "Mandi", "Solan", "Kullu", "Hamirpur"],
+      "common_crops": ["wheat", "maize", "rice", "potato", "apple", "horticulture"],
+      "soil_types": ["Mountain soil", "Red soil", "Alluvial soil"]
+    },
+    "Jammu and Kashmir": {
+      "districts": ["Srinagar", "Jammu", "Anantnag", "Baramulla", "Kathua"],
+      "common_crops": ["rice", "wheat", "maize", "saffron", "apple", "walnut"],
+      "soil_types": ["Mountain soil", "Alluvial soil", "Red soil"]
+    },
+    "Jharkhand": {
+      "districts": ["Ranchi", "Jamshedpur", "Dhanbad", "Bokaro", "Hazaribagh", "Deoghar"],
+      "common_crops": ["rice", "maize", "wheat", "pulses", "potato", "sugarcane"],
+      "soil_types": ["Red soil", "Black soil", "Alluvial soil", "Laterite soil"]
     },
     "Karnataka": {
-      "districts": ["Bengaluru", "Mysuru", "Hubli-Dharwad", "Mangaluru", "Belagavi", "Kalaburagi", "Shimoga", "Tumkur", "Raichur", "Hassan"],
+      "districts": ["Bengaluru", "Mysuru", "Hubli-Dharwad", "Mangaluru", "Belagavi", "Shimoga"],
       "common_crops": ["rice", "cotton", "maize", "mango", "banana", "chili", "potato"],
       "soil_types": ["Red soil", "Black soil", "Laterite soil", "Alluvial soil"]
     },
+    "Kerala": {
+      "districts": ["Thiruvananthapuram", "Kochi", "Kozhikode", "Thrissur", "Alappuzha", "Kollam"],
+      "common_crops": ["rice", "coconut", "rubber", "banana", "spices", "tea"],
+      "soil_types": ["Laterite soil", "Red soil", "Sandy soil", "Alluvial soil"]
+    },
+    "Ladakh": {
+      "districts": ["Leh", "Kargil"],
+      "common_crops": ["barley", "wheat", "apple", "apricot"],
+      "soil_types": ["Mountain soil", "Sandy soil"]
+    },
+    "Lakshadweep": {
+      "districts": ["Kavaratti", "Minicoy"],
+      "common_crops": ["coconut", "banana", "breadfruit"],
+      "soil_types": ["Sandy soil", "Red soil"]
+    },
+    "Madhya Pradesh": {
+      "districts": ["Bhopal", "Indore", "Jabalpur", "Gwalior", "Ujjain", "Sagar"],
+      "common_crops": ["wheat", "rice", "soybean", "cotton", "maize", "pulses"],
+      "soil_types": ["Black soil", "Red soil", "Alluvial soil"]
+    },
+    "Maharashtra": {
+      "districts": ["Mumbai", "Pune", "Nagpur", "Nashik", "Aurangabad", "Solapur"],
+      "common_crops": ["cotton", "wheat", "rice", "mango", "banana", "tomato", "chili"],
+      "soil_types": ["Black soil", "Red soil", "Laterite soil", "Alluvial soil"]
+    },
+    "Manipur": {
+      "districts": ["Imphal", "Bishnupur", "Thoubal", "Churachandpur"],
+      "common_crops": ["rice", "maize", "potato", "pulses", "mustard"],
+      "soil_types": ["Red soil", "Alluvial soil", "Laterite soil"]
+    },
+    "Meghalaya": {
+      "districts": ["Shillong", "Tura", "Nongstoin", "Jowai"],
+      "common_crops": ["rice", "maize", "potato", "banana", "horticulture"],
+      "soil_types": ["Red soil", "Laterite soil", "Alluvial soil"]
+    },
+    "Mizoram": {
+      "districts": ["Aizawl", "Lunglei", "Champhai", "Serchhip"],
+      "common_crops": ["rice", "maize", "mustard", "ginger", "chili"],
+      "soil_types": ["Red soil", "Laterite soil"]
+    },
+    "Nagaland": {
+      "districts": ["Kohima", "Dimapur", "Mokokchung", "Tuensang"],
+      "common_crops": ["rice", "maize", "millet", "potato", "pulses"],
+      "soil_types": ["Red soil", "Alluvial soil", "Mountain soil"]
+    },
+    "Odisha": {
+      "districts": ["Bhubaneswar", "Cuttack", "Rourkela", "Berhampur", "Sambalpur", "Puri"],
+      "common_crops": ["rice", "cotton", "jute", "sugarcane", "maize", "banana"],
+      "soil_types": ["Red soil", "Laterite soil", "Alluvial soil", "Black soil"]
+    },
+    "Puducherry": {
+      "districts": ["Puducherry", "Karaikal", "Yanam", "Mahe"],
+      "common_crops": ["rice", "coconut", "banana", "sugarcane"],
+      "soil_types": ["Sandy soil", "Red soil", "Alluvial soil"]
+    },
+    "Punjab": {
+      "districts": ["Chandigarh", "Ludhiana", "Amritsar", "Jalandhar", "Patiala", "Bathinda"],
+      "common_crops": ["wheat", "rice", "maize", "cotton", "sugarcane", "mustard"],
+      "soil_types": ["Alluvial soil", "Sandy soil", "Red soil"]
+    },
+    "Rajasthan": {
+      "districts": ["Jaipur", "Jodhpur", "Udaipur", "Kota", "Bikaner", "Ajmer"],
+      "common_crops": ["wheat", "mustard", "cotton", "maize", "pulses", "millet"],
+      "soil_types": ["Sandy soil", "Red soil", "Black soil", "Alluvial soil"]
+    },
+    "Sikkim": {
+      "districts": ["Gangtok", "Namchi", "Mangan", "Gyalshing"],
+      "common_crops": ["rice", "maize", "wheat", "potato", "cardamom", "horticulture"],
+      "soil_types": ["Mountain soil", "Red soil", "Alluvial soil"]
+    },
     "Tamil Nadu": {
-      "districts": ["Chennai", "Coimbatore", "Madurai", "Salem", "Tiruchirappalli", "Tirunelveli", "Erode", "Vellore", "Thanjavur", "Dindigul"],
+      "districts": ["Chennai", "Coimbatore", "Madurai", "Salem", "Tiruchirappalli", "Tirunelveli"],
       "common_crops": ["rice", "banana", "mango", "cotton", "maize", "chili"],
       "soil_types": ["Red soil", "Black soil", "Alluvial soil", "Sandy soil"]
     },
-    "Maharashtra": {
-      "districts": ["Mumbai", "Pune", "Nagpur", "Nashik", "Aurangabad", "Solapur", "Kolhapur", "Amravati", "Sangli", "Jalgaon"],
-      "common_crops": ["cotton", "wheat", "rice", "mango", "banana", "tomato", "chili"],
-      "soil_types": ["Black soil", "Red soil", "Laterite soil", "Alluvial soil"]
+    "Telangana": {
+      "districts": ["Hyderabad", "Warangal", "Nizamabad", "Karimnagar", "Khammam", "Nalgonda"],
+      "common_crops": ["rice", "cotton", "maize", "chili", "mango", "tomato"],
+      "soil_types": ["Red soil", "Black soil", "Laterite soil"]
+    },
+    "Tripura": {
+      "districts": ["Agartala", "Udaipur", "Dharmanagar", "Kailashahar"],
+      "common_crops": ["rice", "banana", "pineapple", "jute", "rubber"],
+      "soil_types": ["Alluvial soil", "Red soil", "Laterite soil"]
+    },
+    "Uttar Pradesh": {
+      "districts": ["Lucknow", "Kanpur", "Varanasi", "Agra", "Prayagraj", "Ghaziabad"],
+      "common_crops": ["wheat", "rice", "sugarcane", "potato", "mustard", "maize"],
+      "soil_types": ["Alluvial soil", "Red soil", "Sandy soil"]
+    },
+    "Uttarakhand": {
+      "districts": ["Dehradun", "Haridwar", "Nainital", "Rishikesh", "Haldwani"],
+      "common_crops": ["rice", "wheat", "maize", "potato", "apple", "horticulture"],
+      "soil_types": ["Mountain soil", "Alluvial soil", "Red soil"]
+    },
+    "West Bengal": {
+      "districts": ["Kolkata", "Howrah", "Darjeeling", "Siliguri", "Asansol", "Bardhaman"],
+      "common_crops": ["rice", "jute", "tea", "potato", "sugarcane", "banana"],
+      "soil_types": ["Alluvial soil", "Red soil", "Laterite soil", "Sandy soil"]
     }
   }
 }
