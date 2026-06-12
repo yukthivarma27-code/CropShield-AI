@@ -7,9 +7,10 @@ import { Card } from '../common/Card';
 interface PredictionCardProps {
   result: PredictionResult;
   imageUrl?: string | null;
+  onImageError?: () => void;
 }
 
-export const PredictionCard: React.FC<PredictionCardProps> = ({ result, imageUrl }) => {
+export const PredictionCard: React.FC<PredictionCardProps> = ({ result, imageUrl, onImageError }) => {
   const { t } = useTranslation();
   const isHealthy = result.disease.toLowerCase() === 'healthy';
 
@@ -41,6 +42,7 @@ export const PredictionCard: React.FC<PredictionCardProps> = ({ result, imageUrl
         <img
           src={imageUrl || result.image_url}
           alt={result.disease}
+          onError={onImageError}
           className="w-full h-full object-cover"
         />
         {result.offline && (

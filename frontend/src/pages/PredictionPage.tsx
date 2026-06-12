@@ -12,6 +12,10 @@ import { PredictionResult, Recommendation } from '../types';
 import { Button } from '../components/common/Button';
 import { RefreshCw } from 'lucide-react';
 
+const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+const MAX_SIZE_MB = 10;
+const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
+
 interface PredictionPageProps {
   currentResult: PredictionResult | null;
   setCurrentResult: (result: PredictionResult | null) => void;
@@ -37,10 +41,34 @@ export const PredictionPage: React.FC<PredictionPageProps> = ({
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [selectedCrop, setSelectedCrop] = useState('tomato');
   const [showCamera, setShowCamera] = useState(false);
+  const [imageError, setImageError] = useState<string>('');
 
   const stopAudio = () => speechService.stopSpeaking();
 
+  const validateImageFile = (file: File): string | null => {
+    if (!file) {
+      return 'Please upload an image.';
+    }
+    if (file.size === 0) {
+      return 'Uploaded file is empty. Please select a valid image.';
+    }
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      return 'Unsupported format. Please upload JPG, JPEG, PNG, or WEBP.';
+    }
+    if (file.size > MAX_SIZE_BYTES) {
+      return `File too large. Maximum size is ${MAX_SIZE_MB} MB.`;
+    }
+    return null;
+  };
+
   const handleImageSelected = async (file: File) => {
+    setImageError('');
+    const error = validateImageFile(file);
+    if (error) {
+      setImageError(error);
+      return;
+    }
+
     const imageUrl = URL.createObjectURL(file);
     setPreviewImage(imageUrl);
 
@@ -69,6 +97,7 @@ export const PredictionPage: React.FC<PredictionPageProps> = ({
   };
 
   const handleCameraCapture = async (base64Data: string) => {
+    setImageError('');
     setPreviewImage(base64Data);
 
     setLoading(true);
@@ -95,6 +124,11 @@ export const PredictionPage: React.FC<PredictionPageProps> = ({
     }
   };
 
+  const handleImagePreviewError = () => {
+    setPreviewImage(null);
+    setImageError('Invalid image file. Please upload a different image.');
+  };
+
   const resetPrediction = () => {
     setCurrentResult(null);
     setRecommendation(null);
@@ -104,6 +138,7 @@ export const PredictionPage: React.FC<PredictionPageProps> = ({
     setPreviewImage(null);
     stopAudio();
     setAudioUrl(null);
+    setImageError('');
   };
 
   if (showCamera) {
@@ -117,7 +152,6 @@ export const PredictionPage: React.FC<PredictionPageProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-gray-900 dark:text-zinc-50">
           {t('predict')}
@@ -130,7 +164,6 @@ export const PredictionPage: React.FC<PredictionPageProps> = ({
         )}
       </div>
 
-      {/* Crop Selector */}
       <div className="flex gap-2 overflow-x-auto pb-1">
         {CROP_OPTIONS.map((crop) => (
           <button
@@ -147,25 +180,25 @@ export const PredictionPage: React.FC<PredictionPageProps> = ({
         ))}
       </div>
 
-      {/* Upload Area */}
       {!previewImage && !loading && (
         <ImageUpload
           onImageSelected={handleImageSelected}
           onCameraClick={() => setShowCamera(true)}
+          error={imageError}
+          onClearError={() => setImageError('')}
         />
       )}
 
-      {/* Loading State */}
       {loading && (
         <LoadingSpinner message="Analyzing leaf image..." />
       )}
 
-      {/* Result */}
       {currentResult && !loading && (
         <>
           <PredictionCard
             result={currentResult}
             imageUrl={previewImage}
+            onImageError={handleImagePreviewError}
           />
 
           <SeverityGauge
@@ -177,7 +210,6 @@ export const PredictionPage: React.FC<PredictionPageProps> = ({
             <TreatmentPanel recommendation={recommendation} />
           )}
 
-          {/* Audio Playback */}
           {audioUrl && (
             <audio controls autoPlay className="w-full mt-2">
               <source src={audioUrl} type="audio/mp3" />
