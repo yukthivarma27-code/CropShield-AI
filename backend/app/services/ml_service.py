@@ -2,7 +2,7 @@
 AgriVision AI — ML Inference Service
 ======================================
 Handles model loading and disease prediction.
-Uses a mock model when the trained model is unavailable (for demo purposes).
+Falls back to numpy-based inference when TensorFlow is unavailable.
 """
 
 import os
@@ -16,14 +16,12 @@ from PIL import Image
 from app.config import settings
 
 
-# Disease class labels
 DISEASE_CLASSES = [
     "Anthracnose", "Bacterial Spot", "Bacterial Wilt", "Early Blight",
     "Healthy", "Late Blight", "Leaf Mold", "Mosaic Virus",
     "Powdery Mildew", "Rust"
 ]
 
-# Crop-disease mapping for realistic predictions
 CROP_DISEASES = {
     "tomato": ["Healthy", "Early Blight", "Late Blight", "Bacterial Spot", "Leaf Mold", "Mosaic Virus", "Bacterial Wilt"],
     "potato": ["Healthy", "Early Blight", "Late Blight", "Bacterial Wilt"],
@@ -37,9 +35,61 @@ CROP_DISEASES = {
 }
 
 
-class MLService:
-    """Machine learning inference service."""
+class FeatureModel:
+    """Lightweight feature-based model using only numpy.
+    
+    Extracts simple color/texture features from the image and
+    passes them through a small neural network.
+    """
+    
+    def __init__(self, weights_path: str):
+        self.weights = {}
+        self._load_weights(weights_path)
+    
+    def _load_weights(self, path: str):
+        import h5py
+        with h5py.File(path, "r") as f:
+            for key in f.keys():
+                self.weights[key] = np.array(f[key])
+    
+    def _extract_features(self, image_array: np.ndarray) -> np.ndarray:
+        img = image_array[0]
+        h, w, c = img.shape
+        
+        features = []
+        
+        for ch in range(c):
+            channel = img[:, :, ch]
+            features.append(float(np.mean(channel)))
+            features.append(float(np.std(channel)))
+            features.append(float(np.percentile(channel, 25)))
+            features.append(float(np.percentile(channel, 75)))
+        
+        return np.array(features, dtype=np.float32)
+    
+    def _relu(self, x: np.ndarray) -> np.ndarray:
+        return np.maximum(0, x)
+    
+    def _softmax(self, x: np.ndarray) -> np.ndarray:
+        e_x = np.exp(x - np.max(x, axis=-1, keepdims=True))
+        return e_x / (np.sum(e_x, axis=-1, keepdims=True) + 1e-8)
+    
+    def predict(self, image_array: np.ndarray) -> np.ndarray:
+        features = self._extract_features(image_array)
+        
+        x = features @ self.weights["fc1_weight"] + self.weights["fc1_bias"]
+        x = self._relu(x)
+        
+        x = x @ self.weights["fc2_weight"] + self.weights["fc2_bias"]
+        x = self._relu(x)
+        
+        x = x @ self.weights["fc3_weight"] + self.weights["fc3_bias"]
+        x = self._softmax(x)
+        
+        return x
 
+
+class MLService:
     def __init__(self):
         self.model = None
         self.tflite_interpreter = None
@@ -47,26 +97,43 @@ class MLService:
         self.is_mock = True
 
     async def load_model(self):
-        """Load the trained model or fall back to mock mode."""
         model_path = Path(settings.base_dir) / settings.MODEL_PATH
-
-        if model_path.exists():
+        self.is_mock = True
+        
+        tf_available = False
+        try:
+            os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
+            import tensorflow as tf
+            tf_available = True
+        except ImportError:
+            print("[!] TensorFlow not available. Will try numpy-based inference.")
+        
+        if tf_available and model_path.exists():
             try:
-                os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
                 import tensorflow as tf
                 self.model = tf.keras.models.load_model(str(model_path))
                 self.is_mock = False
-                print(f"[✓] Model loaded from {model_path}")
+                print(f"[✓] Model loaded with TF from {model_path}")
             except Exception as e:
-                print(f"[!] Failed to load model: {e}. Using mock predictions.")
-                self.is_mock = True
-        else:
-            print(f"[!] Model not found at {model_path}. Using mock predictions.")
-            self.is_mock = True
-
-        # Try loading TFLite model
+                print(f"[!] Failed to load model with TF: {e}.")
+        
+        if self.is_mock and model_path.exists():
+            try:
+                import h5py
+                with h5py.File(str(model_path), "r") as f:
+                    keys = list(f.keys())
+                if keys:
+                    self.model = FeatureModel(str(model_path))
+                    self.is_mock = False
+                    print(f"[OK] Feature-based model loaded from {model_path}")
+            except Exception as e:
+                print(f"[!] Failed to load feature model: {e}")
+        
+        if self.is_mock:
+            print(f"[!] No valid model found. Using mock predictions.")
+        
         tflite_path = Path(settings.base_dir) / settings.TFLITE_MODEL_PATH
-        if settings.USE_TFLITE and tflite_path.exists():
+        if settings.USE_TFLITE and tflite_path.exists() and tf_available:
             try:
                 import tensorflow as tf
                 self.tflite_interpreter = tf.lite.Interpreter(model_path=str(tflite_path))
@@ -75,25 +142,17 @@ class MLService:
             except Exception as e:
                 print(f"[!] Failed to load TFLite: {e}")
 
-        # Load class labels
         labels_path = model_path.parent / "class_labels.json"
         if labels_path.exists():
             with open(labels_path) as f:
                 self.class_labels = {int(k): v for k, v in json.load(f).items()}
 
     def predict(self, image_array: np.ndarray, crop: str = None) -> Dict:
-        """
-        Run inference on preprocessed image.
-
-        Args:
-            image_array: Preprocessed image (1, 224, 224, 3)
-            crop: Optional crop type for filtering predictions
-
-        Returns:
-            Dict with disease, confidence, top_3_predictions
-        """
         if self.is_mock:
             return self._mock_predict(crop)
+
+        if isinstance(self.model, FeatureModel):
+            return self._feature_predict(image_array, crop)
 
         if self.tflite_interpreter and settings.USE_TFLITE:
             return self._tflite_predict(image_array, crop)
@@ -101,32 +160,30 @@ class MLService:
         return self._keras_predict(image_array, crop)
 
     def _keras_predict(self, image_array: np.ndarray, crop: str = None) -> Dict:
-        """Run prediction using full Keras model."""
         predictions = self.model.predict(image_array, verbose=0)[0]
         return self._format_predictions(predictions, crop)
 
     def _tflite_predict(self, image_array: np.ndarray, crop: str = None) -> Dict:
-        """Run prediction using TFLite model."""
         input_details = self.tflite_interpreter.get_input_details()
         output_details = self.tflite_interpreter.get_output_details()
-
         self.tflite_interpreter.set_tensor(
             input_details[0]["index"],
             image_array.astype(np.float32)
         )
         self.tflite_interpreter.invoke()
-
         predictions = self.tflite_interpreter.get_tensor(output_details[0]["index"])[0]
         return self._format_predictions(predictions, crop)
 
+    def _feature_predict(self, image_array: np.ndarray, crop: str = None) -> Dict:
+        raw_preds = self.model.predict(image_array)
+        return self._format_predictions(raw_preds, crop)
+
     def _mock_predict(self, crop: str = None) -> Dict:
-        """Generate realistic mock predictions for demo."""
         if crop and crop.lower() in CROP_DISEASES:
             possible = CROP_DISEASES[crop.lower()]
         else:
             possible = DISEASE_CLASSES
 
-        # Generate realistic probability distribution
         probs = np.random.dirichlet(np.ones(len(possible)) * 0.3)
         probs = sorted(probs, reverse=True)
 
@@ -144,16 +201,14 @@ class MLService:
         }
 
     def _format_predictions(self, raw_predictions: np.ndarray, crop: str = None) -> Dict:
-        """Format raw model output into structured predictions."""
         top_indices = np.argsort(raw_predictions)[::-1]
 
         all_preds = []
         for idx in top_indices:
-            disease = self.class_labels.get(idx, f"Class_{idx}")
-            conf = float(raw_predictions[idx])
+            disease = self.class_labels.get(int(idx), f"Class_{idx}")
+            conf = float(raw_predictions[int(idx)])
             all_preds.append({"disease": disease, "confidence": conf})
 
-        # Filter by crop if specified
         if crop and crop.lower() in CROP_DISEASES:
             valid = CROP_DISEASES[crop.lower()]
             filtered = [p for p in all_preds if p["disease"] in valid]
@@ -167,5 +222,4 @@ class MLService:
         }
 
 
-# Singleton
 ml_service = MLService()
