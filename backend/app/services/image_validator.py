@@ -6,12 +6,12 @@ from typing import Dict, Tuple, Optional
 MIN_WIDTH = 100
 MIN_HEIGHT = 100
 
-MIN_GREEN_RATIO = 0.15
+MIN_GREEN_RATIO = 0.10
 
-MAX_TEXT_EDGE_DENSITY = 0.35
+MAX_TEXT_EDGE_DENSITY = 0.40
 
-MIN_COLOR_STD = 15.0
-MIN_ENTROPY = 3.0
+MIN_COLOR_STD = 8.0
+MIN_ENTROPY = 2.5
 
 LEAF_GREEN_HUE_RANGE = (40, 170)
 LEAF_GREEN_SAT_MIN = 30
@@ -62,7 +62,7 @@ def validate_crop_image(pil_image: Image.Image) -> Tuple[bool, str, Dict]:
     sobel_x = np.abs(np.diff(gray.astype(np.float32), axis=1))
     sobel_y = np.abs(np.diff(gray.astype(np.float32), axis=0))
     edge_magnitude = np.sqrt(
-        sobel_x[:, :-1] ** 2 + sobel_y[:-1, :] ** 2
+        sobel_x[:-1, :] ** 2 + sobel_y[:, :-1] ** 2
     )
     edge_threshold = 50.0
     edge_density = float((edge_magnitude > edge_threshold).sum() / edge_magnitude.size)
