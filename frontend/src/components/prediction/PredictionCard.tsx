@@ -40,6 +40,7 @@ export const PredictionCard: React.FC<PredictionCardProps> = ({ result, imageUrl
       {/* Main image view */}
       <div className="my-4 aspect-[4/3] rounded-2xl overflow-hidden border border-gray-100 dark:border-zinc-800 relative bg-zinc-900">
         <img
+          key={imageUrl || 'fallback'}
           src={imageUrl || result.image_url}
           alt={result.disease}
           onError={onImageError}

@@ -125,7 +125,6 @@ export const PredictionPage: React.FC<PredictionPageProps> = ({
   };
 
   const handleImagePreviewError = () => {
-    setPreviewImage(null);
     setImageError('Invalid image file. Please upload a different image.');
   };
 
