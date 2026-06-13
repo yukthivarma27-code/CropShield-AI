@@ -54,7 +54,12 @@ export async function predictCropDisease(
   });
 
   if (!res.ok) {
-    throw new Error('Prediction API failed');
+    let detail = 'Prediction API failed';
+    try {
+      const errBody = await res.json();
+      if (errBody.detail) detail = errBody.detail;
+    } catch {}
+    throw new Error(detail);
   }
 
   const result = await res.json();

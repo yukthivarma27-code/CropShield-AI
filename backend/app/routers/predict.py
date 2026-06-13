@@ -13,6 +13,7 @@ from app.services.ml_service import ml_service
 from app.services.image_processing import save_upload_image, process_base64_image
 from app.services.severity_service import estimate_severity
 from app.services.treatment_engine import get_disease_info
+from app.services.image_validator import validate_crop_image
 from ml.preprocess import preprocess_for_prediction
 
 router = APIRouter(prefix="/predict", tags=["Prediction"])
@@ -48,6 +49,11 @@ async def predict_disease(
             raise HTTPException(status_code=400, detail="No image provided. Send a file or base64 image.")
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Image processing failed: {str(e)}")
+
+    # Validate image is a crop leaf/plant
+    is_valid, validation_msg, _metrics = validate_crop_image(pil_image)
+    if not is_valid:
+        raise HTTPException(status_code=400, detail=validation_msg)
 
     # Preprocess
     processed = preprocess_for_prediction(pil_image)

@@ -88,9 +88,10 @@ export const PredictionPage: React.FC<PredictionPageProps> = ({
       if (base64Audio) {
         setAudioUrl(base64Audio);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert('Inference failed. Check connection or retry.');
+      setImageError(err?.message || 'Inference failed. Check connection or retry.');
+      setPreviewImage(null);
     } finally {
       setLoading(false);
     }
@@ -116,9 +117,10 @@ export const PredictionPage: React.FC<PredictionPageProps> = ({
       if (base64Audio) {
         setAudioUrl(base64Audio);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert('Camera upload prediction failed.');
+      setImageError(err?.message || 'Camera upload prediction failed.');
+      setPreviewImage(null);
     } finally {
       setLoading(false);
     }
