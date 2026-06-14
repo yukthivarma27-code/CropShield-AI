@@ -1,20 +1,27 @@
 import numpy as np
 from PIL import Image
-from typing import Dict, Tuple, Optional
+from typing import Dict, Tuple
 
 
 MIN_WIDTH = 100
 MIN_HEIGHT = 100
 
-MIN_GREEN_RATIO = 0.10
-
-MAX_TEXT_EDGE_DENSITY = 0.40
-
 MIN_COLOR_STD = 8.0
 MIN_ENTROPY = 2.5
 
-LEAF_GREEN_HUE_RANGE = (40, 170)
-LEAF_GREEN_SAT_MIN = 30
+MAX_TEXT_EDGE_DENSITY = 0.35
+
+
+def _is_green_pixel(h: np.ndarray, s: np.ndarray, v: np.ndarray) -> np.ndarray:
+    return (h >= 50) & (h <= 120) & (s >= 40) & (v >= 30)
+
+
+def _is_yellow_pixel(h: np.ndarray, s: np.ndarray, v: np.ndarray) -> np.ndarray:
+    return (h >= 28) & (h < 50) & (s >= 60) & (v >= 50)
+
+
+def _is_brown_pixel(h: np.ndarray, s: np.ndarray, v: np.ndarray) -> np.ndarray:
+    return (h >= 5) & (h < 28) & (s >= 80) & (v >= 20) & (v <= 160)
 
 
 def validate_crop_image(pil_image: Image.Image) -> Tuple[bool, str, Dict]:
@@ -52,12 +59,28 @@ def validate_crop_image(pil_image: Image.Image) -> Tuple[bool, str, Dict]:
     hsv = np.array(pil_image.convert("HSV"), dtype=np.uint8)
     h, s, v = hsv[:, :, 0], hsv[:, :, 1], hsv[:, :, 2]
 
-    green_mask = (
-        (h >= LEAF_GREEN_HUE_RANGE[0]) & (h <= LEAF_GREEN_HUE_RANGE[1]) &
-        (s >= LEAF_GREEN_SAT_MIN)
-    )
-    green_ratio = float(green_mask.sum() / green_mask.size)
+    green_mask = _is_green_pixel(h, s, v)
+    yellow_mask = _is_yellow_pixel(h, s, v)
+    brown_mask = _is_brown_pixel(h, s, v)
+
+    total_px = green_mask.size
+    green_ratio = float(green_mask.sum() / total_px)
+    yellow_ratio = float(yellow_mask.sum() / total_px)
+    brown_ratio = float(brown_mask.sum() / total_px)
+    natural_ratio = float((green_mask | yellow_mask | brown_mask).sum() / total_px)
+
     metrics["green_ratio"] = float(round(green_ratio, 4))
+    metrics["yellow_ratio"] = float(round(yellow_ratio, 4))
+    metrics["brown_ratio"] = float(round(brown_ratio, 4))
+    metrics["natural_ratio"] = float(round(natural_ratio, 4))
+
+    if green_ratio >= 0.05:
+        pass
+    elif natural_ratio >= 0.20:
+        pass
+    else:
+        metrics["rejection_reason"] = "low_natural"
+        return False, "Please upload a clear image of a crop leaf.", metrics
 
     sobel_x = np.abs(np.diff(gray.astype(np.float32), axis=1))
     sobel_y = np.abs(np.diff(gray.astype(np.float32), axis=0))
@@ -68,32 +91,9 @@ def validate_crop_image(pil_image: Image.Image) -> Tuple[bool, str, Dict]:
     edge_density = float((edge_magnitude > edge_threshold).sum() / edge_magnitude.size)
     metrics["edge_density"] = float(round(edge_density, 4))
 
-    color_var_per_channel = img_array.var(axis=(0, 1))
-    color_variance = float(color_var_per_channel.mean())
-    metrics["color_variance"] = float(round(color_variance, 2))
-
-    low_var_mask = color_var_per_channel < 500.0
-    low_var_channels = int(low_var_mask.sum())
-    metrics["low_var_channels"] = low_var_channels
-
-    if green_ratio < MIN_GREEN_RATIO:
-        metrics["rejection_reason"] = "low_green"
-        return False, "Please upload a clear image of a crop leaf.", metrics
-
     if edge_density > MAX_TEXT_EDGE_DENSITY:
         metrics["rejection_reason"] = "high_edge_density"
         return False, "Please upload a clear image of a crop leaf.", metrics
-
-    if low_var_channels >= 2:
-        R, G, B = img_array[:, :, 0], img_array[:, :, 1], img_array[:, :, 2]
-        r_ratio = float((R > G + 10).sum() / R.size)
-        b_ratio = float((B > G + 10).sum() / B.size)
-        metrics["r_ratio"] = float(round(r_ratio, 4))
-        metrics["b_ratio"] = float(round(b_ratio, 4))
-
-        if r_ratio > 0.4 or b_ratio > 0.4:
-            metrics["rejection_reason"] = "dominant_non_green"
-            return False, "Please upload a clear image of a crop leaf.", metrics
 
     return True, "", metrics
 
