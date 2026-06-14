@@ -192,7 +192,18 @@ export const PredictionPage: React.FC<PredictionPageProps> = ({
       )}
 
       {loading && (
-        <LoadingSpinner message="Analyzing leaf image..." />
+        <div className="space-y-3">
+          {previewImage && (
+            <div className="aspect-[4/3] rounded-2xl overflow-hidden border border-gray-100 dark:border-zinc-800 bg-zinc-900">
+              <img
+                src={previewImage}
+                alt="Uploaded leaf"
+                className="w-full h-full object-cover"
+              />
+            </div>
+          )}
+          <LoadingSpinner message="Analyzing leaf image..." />
+        </div>
       )}
 
       {currentResult && !loading && (
