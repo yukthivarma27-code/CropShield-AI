@@ -114,7 +114,12 @@ export async function getWeatherInfo(state: string, district: string): Promise<W
 
   if (!isOnline) {
     const cached = await offlineDb.getCachedWeather(state, district);
-    if (cached) return cached;
+    if (cached) {
+      console.log('Weather Source: Backend fallback → cache (settings location)');
+      console.log('Weather Data:', cached);
+      return cached;
+    }
+    console.warn('Weather Source: Backend fallback → mock (offline, no cache)');
     return generateOfflineMockWeather(state, district);
   }
 
@@ -122,6 +127,8 @@ export async function getWeatherInfo(state: string, district: string): Promise<W
   if (!res.ok) throw new Error('Weather API failed');
 
   const data = await res.json();
+  console.log('Weather Source: Backend API (settings location)');
+  console.log('Weather Data:', data);
   await offlineDb.cacheWeather(state, district, data);
   return data;
 }
@@ -171,7 +178,6 @@ export async function getWeatherByGPS(
   try {
     pos = await getCurrentPosition();
   } catch {
-    // GPS denied or failed — fall back to settings-based weather
     return getWeatherInfo(fallbackState, fallbackDistrict);
   }
 
@@ -182,46 +188,60 @@ export async function getWeatherByGPS(
   const cached = await offlineDb.db.weatherCache.get(gpsId);
   if (cached) {
     const age = Date.now() - new Date(cached.recorded_at).getTime();
-    if (age < 15 * 60 * 1000) return { ...cached, cached: true };
+    if (age < 15 * 60 * 1000) {
+      console.log('Weather Source: Cache (fresh, <15min)');
+      console.log('Weather Data:', cached);
+      return { ...cached, cached: true };
+    }
     await offlineDb.db.weatherCache.delete(gpsId);
   }
 
-  const isOnline = await checkOnlineStatus();
-  if (!isOnline) {
-    const { city, state } = await reverseGeocode(latitude, longitude);
-    return generateOfflineMockWeather(state || fallbackState, city || fallbackDistrict);
+  // Fetch from Open-Meteo directly — no backend dependency
+  try {
+    const omUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m,weather_code&timezone=auto`;
+    const omRes = await fetch(omUrl);
+    if (!omRes.ok) throw new Error(`Open-Meteo HTTP ${omRes.status}`);
+    const omData = await omRes.json();
+    const current = omData.current || {};
+    const wmoCode = current.weather_code ?? 0;
+
+    // Reverse geocode for location names (best-effort)
+    let city = '', state = '';
+    try {
+      const geo = await reverseGeocode(latitude, longitude);
+      city = geo.city;
+      state = geo.state;
+    } catch { /* best-effort */ }
+
+    const weather: WeatherData = {
+      state: state || fallbackState,
+      district: city || fallbackDistrict,
+      temperature: Math.round(current.temperature_2m ?? 28),
+      humidity: current.relative_humidity_2m ?? 70,
+      rain_probability: Math.round((current.precipitation ?? 0) * 10),
+      wind_speed: Math.round((current.wind_speed_10m ?? 5) * 10) / 10,
+      description: WMO_DESCRIPTIONS[wmoCode] || 'unknown',
+      advisory: '',
+      alerts: [],
+      recorded_at: new Date().toISOString(),
+    };
+
+    weather.advisory = generateWeatherAdvisory(weather);
+    weather.alerts = generateWeatherAlerts(weather);
+
+    console.log('Weather Source: Open-Meteo API (live)');
+    console.log('Weather Data:', weather);
+
+    offlineDb.db.weatherCache.put({ ...weather, id: gpsId });
+    return weather;
+  } catch (err) {
+    console.warn('Open-Meteo fetch failed, using fallback:', err);
+    if (cached) {
+      console.log('Weather Source: Cache (stale, served as fallback)');
+      return { ...cached, cached: true };
+    }
+    return getWeatherInfo(fallbackState, fallbackDistrict);
   }
-
-  // Fetch from Open-Meteo directly
-  const omUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m,weather_code&timezone=auto`;
-  const omRes = await fetch(omUrl);
-  const omData = await omRes.json();
-  const current = omData.current || {};
-  const wmoCode = current.weather_code ?? 0;
-
-  // Reverse geocode for location names (best-effort)
-  const { city, state } = await reverseGeocode(latitude, longitude);
-
-  const weather: WeatherData = {
-    state: state || fallbackState,
-    district: city || fallbackDistrict,
-    temperature: Math.round(current.temperature_2m ?? 28),
-    humidity: current.relative_humidity_2m ?? 70,
-    rain_probability: Math.round((current.precipitation ?? 0) * 10),
-    wind_speed: Math.round((current.wind_speed_10m ?? 5) * 10) / 10,
-    description: WMO_DESCRIPTIONS[wmoCode] || 'unknown',
-    advisory: '',
-    alerts: [],
-    recorded_at: new Date().toISOString(),
-  };
-
-  // Generate advisory client-side (same logic as backend)
-  weather.advisory = generateWeatherAdvisory(weather);
-  weather.alerts = generateWeatherAlerts(weather);
-
-  // Cache under GPS coords key
-  offlineDb.db.weatherCache.put({ ...weather, id: gpsId });
-  return weather;
 }
 
 function generateWeatherAdvisory(w: WeatherData): string {
