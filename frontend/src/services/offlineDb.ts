@@ -56,10 +56,12 @@ export async function getCachedRecommendation(disease: string): Promise<Recommen
   return await db.recommendations.get(disease);
 }
 
+const CACHE_DURATION_MS = 15 * 60 * 1000; // 15 minutes
+
 export async function cacheWeather(state: string, district: string, data: WeatherData) {
   try {
     const id = `${state}_${district}`.toLowerCase();
-    await db.weatherCache.put({ ...data, id });
+    await db.weatherCache.put({ ...data, id, recorded_at: new Date().toISOString() });
   } catch (err) {
     console.error('Failed to cache weather:', err);
   }
@@ -67,7 +69,14 @@ export async function cacheWeather(state: string, district: string, data: Weathe
 
 export async function getCachedWeather(state: string, district: string): Promise<WeatherData | undefined> {
   const id = `${state}_${district}`.toLowerCase();
-  return await db.weatherCache.get(id);
+  const cached = await db.weatherCache.get(id);
+  if (!cached) return undefined;
+  const age = Date.now() - new Date(cached.recorded_at).getTime();
+  if (age > CACHE_DURATION_MS) {
+    await db.weatherCache.delete(id);
+    return undefined;
+  }
+  return { ...cached, cached: true };
 }
 
 export async function saveProfile(profile: UserProfile) {

@@ -1,16 +1,13 @@
 """
 AgriVision AI — Weather Service
 =================================
-OpenWeatherMap integration with agricultural advisories.
-Falls back to mock data when API key is unavailable.
+Open-Meteo integration with agricultural advisories.
+Falls back to mock data when the API call fails.
 """
 
 import httpx
 from datetime import datetime
-from typing import Dict, List, Optional
-
-from app.config import settings
-
+from typing import Dict, List
 
 # City coordinates for districts
 DISTRICT_COORDS = {
@@ -23,34 +20,58 @@ DISTRICT_COORDS = {
     "Nagpur": (21.1458, 79.0882), "Nashik": (19.9975, 73.7898),
 }
 
+# WMO weather code → English description
+WMO_CODES = {
+    0: "clear sky", 1: "mainly clear", 2: "partly cloudy", 3: "overcast",
+    45: "foggy", 48: "depositing rime fog",
+    51: "light drizzle", 53: "moderate drizzle", 55: "dense drizzle",
+    56: "light freezing drizzle", 57: "dense freezing drizzle",
+    61: "slight rain", 63: "moderate rain", 65: "heavy rain",
+    66: "light freezing rain", 67: "heavy freezing rain",
+    71: "slight snow", 73: "moderate snow", 75: "heavy snow",
+    77: "snow grains",
+    80: "slight rain showers", 81: "moderate rain showers", 82: "violent rain showers",
+    85: "slight snow showers", 86: "heavy snow showers",
+    95: "thunderstorm", 96: "thunderstorm with slight hail", 99: "thunderstorm with heavy hail",
+}
+
 
 async def get_weather(state: str, district: str) -> Dict:
-    """Fetch weather data for a location."""
-    if settings.OPENWEATHER_API_KEY and settings.OPENWEATHER_API_KEY != "your_api_key_here":
-        return await _fetch_live_weather(district)
-    return _mock_weather(state, district)
-
-
-async def _fetch_live_weather(district: str) -> Dict:
-    """Fetch real weather data from OpenWeatherMap API."""
+    """Fetch weather data for a location using Open-Meteo."""
     coords = DISTRICT_COORDS.get(district)
     if not coords:
-        return _mock_weather("", district)
+        return _mock_weather(state, district)
+    return await _fetch_live_weather(*coords, state, district)
 
-    lat, lon = coords
-    url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={settings.OPENWEATHER_API_KEY}&units=metric"
+
+async def get_weather_by_coords(lat: float, lon: float) -> Dict:
+    """Fetch weather data for GPS coordinates using Open-Meteo."""
+    return await _fetch_live_weather(lat, lon, "", "")
+
+
+async def _fetch_live_weather(lat: float, lon: float, state: str, district: str) -> Dict:
+    """Fetch real weather data from Open-Meteo API."""
+    url = (
+        f"https://api.open-meteo.com/v1/forecast?"
+        f"latitude={lat}&longitude={lon}"
+        f"&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m,weather_code"
+        f"&timezone=auto"
+    )
 
     try:
         async with httpx.AsyncClient() as client:
             resp = await client.get(url, timeout=10)
             data = resp.json()
 
+        current = data.get("current", {})
+        weather_code = current.get("weather_code", 0)
+
         weather = {
-            "temperature": data["main"]["temp"],
-            "humidity": data["main"]["humidity"],
-            "wind_speed": data.get("wind", {}).get("speed", 0),
-            "description": data["weather"][0]["description"],
-            "rain_probability": data.get("rain", {}).get("1h", 0) * 10,
+            "temperature": round(current.get("temperature_2m", 28), 1),
+            "humidity": current.get("relative_humidity_2m", 70),
+            "wind_speed": round(current.get("wind_speed_10m", 5), 1),
+            "description": WMO_CODES.get(weather_code, "unknown"),
+            "rain_probability": round(current.get("precipitation", 0) * 10, 1),
         }
 
         weather["advisory"] = _generate_advisory(weather)
@@ -58,8 +79,8 @@ async def _fetch_live_weather(district: str) -> Dict:
         return weather
 
     except Exception as e:
-        print(f"[!] Weather API error: {e}")
-        return _mock_weather("", district)
+        print(f"[!] Open-Meteo API error: {e}")
+        return _mock_weather(state, district)
 
 
 def _mock_weather(state: str, district: str) -> Dict:

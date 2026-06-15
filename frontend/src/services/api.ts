@@ -1,4 +1,4 @@
-import { PredictionResult, Recommendation, WeatherData } from '../types';
+import { PredictionResult, Recommendation, WeatherAlert, WeatherData } from '../types';
 import * as offlineDb from './offlineDb';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
@@ -124,6 +124,125 @@ export async function getWeatherInfo(state: string, district: string): Promise<W
   const data = await res.json();
   await offlineDb.cacheWeather(state, district, data);
   return data;
+}
+
+// ── GPS‑Based Weather (Open‑Meteo + Nominatim) ──────────────────────────────
+
+function getCurrentPosition(): Promise<GeolocationPosition> {
+  return new Promise((resolve, reject) => {
+    navigator.geolocation.getCurrentPosition(resolve, reject, {
+      enableHighAccuracy: false,
+      timeout: 8000,
+      maximumAge: 300000,
+    });
+  });
+}
+
+async function reverseGeocode(lat: number, lon: number): Promise<{ city: string; state: string }> {
+  const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=en`;
+  const res = await fetch(url, {
+    headers: { 'User-Agent': 'CropShield-AI/1.0' },
+  });
+  if (!res.ok) return { city: '', state: '' };
+  const data = await res.json();
+  const addr = data.address || {};
+  const city = addr.city || addr.town || addr.village || addr.county || '';
+  const state = addr.state || '';
+  return { city, state };
+}
+
+const WMO_DESCRIPTIONS: Record<number, string> = {
+  0: 'clear sky', 1: 'mainly clear', 2: 'partly cloudy', 3: 'overcast',
+  45: 'foggy', 48: 'depositing rime fog',
+  51: 'light drizzle', 53: 'moderate drizzle', 55: 'dense drizzle',
+  56: 'light freezing drizzle', 57: 'dense freezing drizzle',
+  61: 'slight rain', 63: 'moderate rain', 65: 'heavy rain',
+  66: 'light freezing rain', 67: 'heavy freezing rain',
+  71: 'slight snow', 73: 'moderate snow', 75: 'heavy snow',
+  80: 'slight rain showers', 81: 'moderate rain showers', 82: 'violent rain showers',
+  95: 'thunderstorm', 96: 'thunderstorm with slight hail', 99: 'thunderstorm with heavy hail',
+};
+
+export async function getWeatherByGPS(
+  fallbackState: string,
+  fallbackDistrict: string,
+): Promise<WeatherData> {
+  let pos: GeolocationPosition;
+  try {
+    pos = await getCurrentPosition();
+  } catch {
+    // GPS denied or failed — fall back to settings-based weather
+    return getWeatherInfo(fallbackState, fallbackDistrict);
+  }
+
+  const { latitude, longitude } = pos.coords;
+  const gpsId = `gps_${latitude.toFixed(2)}_${longitude.toFixed(2)}`;
+
+  // Check cache for GPS coords
+  const cached = await offlineDb.db.weatherCache.get(gpsId);
+  if (cached) {
+    const age = Date.now() - new Date(cached.recorded_at).getTime();
+    if (age < 15 * 60 * 1000) return { ...cached, cached: true };
+    await offlineDb.db.weatherCache.delete(gpsId);
+  }
+
+  const isOnline = await checkOnlineStatus();
+  if (!isOnline) {
+    const { city, state } = await reverseGeocode(latitude, longitude);
+    return generateOfflineMockWeather(state || fallbackState, city || fallbackDistrict);
+  }
+
+  // Fetch from Open-Meteo directly
+  const omUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m,weather_code&timezone=auto`;
+  const omRes = await fetch(omUrl);
+  const omData = await omRes.json();
+  const current = omData.current || {};
+  const wmoCode = current.weather_code ?? 0;
+
+  // Reverse geocode for location names (best-effort)
+  const { city, state } = await reverseGeocode(latitude, longitude);
+
+  const weather: WeatherData = {
+    state: state || fallbackState,
+    district: city || fallbackDistrict,
+    temperature: Math.round(current.temperature_2m ?? 28),
+    humidity: current.relative_humidity_2m ?? 70,
+    rain_probability: Math.round((current.precipitation ?? 0) * 10),
+    wind_speed: Math.round((current.wind_speed_10m ?? 5) * 10) / 10,
+    description: WMO_DESCRIPTIONS[wmoCode] || 'unknown',
+    advisory: '',
+    alerts: [],
+    recorded_at: new Date().toISOString(),
+  };
+
+  // Generate advisory client-side (same logic as backend)
+  weather.advisory = generateWeatherAdvisory(weather);
+  weather.alerts = generateWeatherAlerts(weather);
+
+  // Cache under GPS coords key
+  offlineDb.db.weatherCache.put({ ...weather, id: gpsId });
+  return weather;
+}
+
+function generateWeatherAdvisory(w: WeatherData): string {
+  const parts: string[] = [];
+  if (w.humidity > 80) parts.push('High humidity detected. Monitor crops closely for fungal diseases like Late Blight and Powdery Mildew.');
+  else if (w.humidity > 60) parts.push('Moderate to high humidity. Ensure proper ventilation and plant spacing.');
+  if (w.rain_probability > 60) parts.push('Rain expected within 24 hours. Delay pesticide spraying to avoid wash-off.');
+  else if (w.rain_probability > 30) parts.push('Moderate chance of rain. Consider completing spray applications early in the day.');
+  if (w.temperature > 35) parts.push('High temperature alert. Increase irrigation frequency. Avoid spraying sulfur-based fungicides.');
+  else if (w.temperature < 15) parts.push('Low temperature. Watch for frost damage on sensitive crops.');
+  if (w.wind_speed > 10) parts.push('Windy conditions. Avoid spraying pesticides to prevent drift.');
+  return parts.length ? parts.join(' ') : 'Weather conditions are favorable for agricultural activities.';
+}
+
+function generateWeatherAlerts(w: WeatherData): WeatherAlert[] {
+  const alerts: WeatherAlert[] = [];
+  if (w.humidity > 85) alerts.push({ type: 'warning', message: 'High humidity may promote fungal growth. Inspect crops daily.' });
+  if (w.rain_probability > 70) alerts.push({ type: 'caution', message: 'Rain expected within 24 hours. Delay pesticide spraying.' });
+  if (w.temperature > 38) alerts.push({ type: 'warning', message: 'Extreme heat. Ensure adequate irrigation and shade for sensitive crops.' });
+  if (w.wind_speed > 12) alerts.push({ type: 'info', message: 'Strong winds. Secure crop support structures.' });
+  return alerts;
 }
 
 export async function getTTSAudio(text: string, lang = 'en'): Promise<string> {

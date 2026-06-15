@@ -63,6 +63,8 @@ export interface WeatherData {
   advisory: string;
   alerts: WeatherAlert[];
   recorded_at: string;
+  cached?: boolean;
+  offline?: boolean;
 }
 
 export interface UserProfile {
