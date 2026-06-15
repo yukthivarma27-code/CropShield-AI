@@ -91,7 +91,6 @@ export const PredictionPage: React.FC<PredictionPageProps> = ({
     } catch (err: any) {
       console.error(err);
       setImageError(err?.message || 'Inference failed. Check connection or retry.');
-      setPreviewImage(null);
     } finally {
       setLoading(false);
     }
@@ -120,7 +119,6 @@ export const PredictionPage: React.FC<PredictionPageProps> = ({
     } catch (err: any) {
       console.error(err);
       setImageError(err?.message || 'Camera upload prediction failed.');
-      setPreviewImage(null);
     } finally {
       setLoading(false);
     }
@@ -181,7 +179,7 @@ export const PredictionPage: React.FC<PredictionPageProps> = ({
         ))}
       </div>
 
-      {!previewImage && !loading && (
+      {!loading && (!previewImage || imageError) && (
         <ImageUpload
           onImageSelected={handleImageSelected}
           onCameraClick={() => setShowCamera(true)}

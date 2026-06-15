@@ -18,25 +18,6 @@ export async function predictCropDisease(
   state?: string,
   district?: string
 ): Promise<PredictionResult> {
-  const isOnline = await checkOnlineStatus();
-
-  if (!isOnline) {
-    // Generate a simulated offline prediction
-    const mockResult = generateOfflineMockResult(crop);
-    await offlineDb.saveOfflinePrediction(mockResult);
-
-    // Queue for future upload when connection returns
-    await offlineDb.queueOfflineAction('predict', {
-      crop,
-      state,
-      district,
-      image_base64: typeof fileOrBase64 === 'string' ? fileOrBase64 : null,
-      timestamp: Date.now()
-    });
-
-    return { ...mockResult, offline: true };
-  }
-
   const formData = new FormData();
   if (typeof fileOrBase64 === 'string') {
     formData.append('image_base64', fileOrBase64);
@@ -48,38 +29,51 @@ export async function predictCropDisease(
   if (state) formData.append('state', state);
   if (district) formData.append('district', district);
 
-  const res = await fetch(`${API_BASE_URL}/predict`, {
-    method: 'POST',
-    body: formData,
-  });
-
-  if (!res.ok) {
-    let detail = 'Prediction API failed';
-    try {
-      const errBody = await res.json();
-      if (errBody.detail) detail = errBody.detail;
-    } catch {}
-    throw new Error(detail);
-  }
-
-  const result = await res.json();
-  const fullResult = {
-    ...result,
-    image_url: result.image_url ? `${API_BASE_URL}${result.image_url}` : '',
-  };
-
-  // Cache results locally
-  await offlineDb.saveOfflinePrediction(fullResult);
-
-  // Prefetch & cache treatments/remedies for this disease to improve offline access
   try {
-    const rec = await getRecommendation(fullResult.disease, crop, state, district);
-    await offlineDb.cacheRecommendation(rec);
-  } catch (err) {
-    console.error('Failed to pre-cache recommendations:', err);
-  }
+    const res = await fetch(`${API_BASE_URL}/predict`, {
+      method: 'POST',
+      body: formData,
+    });
 
-  return fullResult;
+    if (!res.ok) {
+      let detail = 'Prediction API failed';
+      try {
+        const errBody = await res.json();
+        if (errBody.detail) detail = errBody.detail;
+      } catch {}
+      throw new Error(detail);
+    }
+
+    const result = await res.json();
+    const fullResult = {
+      ...result,
+      image_url: result.image_url ? `${API_BASE_URL}${result.image_url}` : '',
+    };
+
+    await offlineDb.saveOfflinePrediction(fullResult);
+
+    try {
+      const rec = await getRecommendation(fullResult.disease, crop, state, district);
+      await offlineDb.cacheRecommendation(rec);
+    } catch (err) {
+      console.error('Failed to pre-cache recommendations:', err);
+    }
+
+    return fullResult;
+  } catch (err) {
+    // Network error — fall back to offline mock
+    console.warn('Prediction API failed, using offline fallback:', err);
+    const mockResult = generateOfflineMockResult(crop);
+    await offlineDb.saveOfflinePrediction(mockResult);
+    await offlineDb.queueOfflineAction('predict', {
+      crop,
+      state,
+      district,
+      image_base64: typeof fileOrBase64 === 'string' ? fileOrBase64 : null,
+      timestamp: Date.now()
+    });
+    return { ...mockResult, offline: true };
+  }
 }
 
 export async function getRecommendation(
