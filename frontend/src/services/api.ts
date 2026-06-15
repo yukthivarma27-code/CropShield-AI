@@ -146,7 +146,7 @@ const WMO_DESCRIPTIONS: Record<number, string> = {
   95: 'thunderstorm', 96: 'thunderstorm with slight hail', 99: 'thunderstorm with heavy hail',
 };
 
-export async function getWeatherByGPS(): Promise<WeatherData> {
+export async function getWeatherByGPS(forceRefresh = false): Promise<WeatherData> {
   // 1. Fresh GPS coordinates
   const pos = await getCurrentPosition();
   const { latitude, longitude } = pos.coords;
@@ -154,19 +154,19 @@ export async function getWeatherByGPS(): Promise<WeatherData> {
 
   console.log('Coordinates', latitude, longitude);
 
-  // 2. Check cache (10-min TTL)
-  const cached = await offlineDb.db.weatherCache.get(gpsId);
-  if (cached) {
-    const age = Date.now() - new Date(cached.recorded_at).getTime();
-    if (age < 10 * 60 * 1000) {
-      console.log('Weather Source: Cache (fresh, <10min)');
-      console.log('Weather Data:', cached);
-      return { ...cached, cached: true };
+  // 2. Check cache — skip if forceRefresh (refresh button / location change)
+  if (!forceRefresh) {
+    const cached = await offlineDb.db.weatherCache.get(gpsId);
+    if (cached) {
+      const age = Date.now() - new Date(cached.recorded_at).getTime();
+      if (age < 10 * 60 * 1000) {
+        return { ...cached, cached: true };
+      }
+      await offlineDb.db.weatherCache.delete(gpsId);
     }
-    await offlineDb.db.weatherCache.delete(gpsId);
   }
 
-  // 3. Fetch from Open-Meteo with precipitation_probability
+  // 3. Fetch from Open-Meteo
   const omUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,precipitation_probability,wind_speed_10m,weather_code&timezone=auto`;
   console.log('Weather API URL', omUrl);
 
@@ -174,10 +174,12 @@ export async function getWeatherByGPS(): Promise<WeatherData> {
   if (!omRes.ok) throw new Error(`Open-Meteo HTTP ${omRes.status}`);
 
   const omData = await omRes.json();
-  console.log('Weather Response', omData);
+  console.log('RAW API RESPONSE', omData);
 
   const current = omData.current || {};
   const wmoCode = current.weather_code ?? 0;
+
+  console.log('Humidity From API', current.relative_humidity_2m);
 
   // 4. Reverse geocode for display names (best-effort)
   let city = '', state = '';
@@ -205,8 +207,12 @@ export async function getWeatherByGPS(): Promise<WeatherData> {
   weather.advisory = generateWeatherAdvisory(weather);
   weather.alerts = generateWeatherAlerts(weather);
 
-  console.log('Weather Source: Open-Meteo API (live)');
-  console.log('Weather Data:', weather);
+  console.log('Location:', `${weather.district}, ${weather.state}`);
+  console.log('Temperature:', weather.temperature);
+  console.log('Humidity:', weather.humidity);
+  console.log('Rain Probability:', weather.rain_probability);
+  console.log('Wind Speed:', weather.wind_speed);
+  console.log('Updated At:', weather.recorded_at);
 
   await offlineDb.db.weatherCache.put({ ...weather, id: gpsId });
   return weather;

@@ -28,20 +28,28 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({ state, district })
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const unmountedRef = useRef(false);
 
-  const loadWeather = async () => {
+  const loadWeather = async (force = false) => {
     setError(null);
+    console.log(force ? 'Refresh Triggered' : 'Loading Weather');
     try {
-      const data = await getWeatherByGPS();
-      if (!unmountedRef.current) setWeather(data);
+      const data = await getWeatherByGPS(force);
+      if (!unmountedRef.current) {
+        console.log('Fetching New Weather');
+        setWeather(data);
+      }
     } catch (err) {
       if (unmountedRef.current) return;
       console.error('Weather load failed:', err);
-      // Try cache (any location) as offline fallback
+      // Offline fallback — same-GPS cache only
       try {
-        const allCached = await (await import('../../services/offlineDb')).db.weatherCache.toArray();
-        const sorted = allCached.sort((a, b) => new Date(b.recorded_at).getTime() - new Date(a.recorded_at).getTime());
-        if (sorted.length > 0) {
-          if (!unmountedRef.current) setWeather({ ...sorted[0], cached: true, offline: true });
+        const db = (await import('../../services/offlineDb')).db;
+        const pos = await new Promise<GeolocationPosition>((res, rej) =>
+          navigator.geolocation.getCurrentPosition(res, rej, { timeout: 3000, maximumAge: 0 })
+        );
+        const fallbackId = `gps_${pos.coords.latitude.toFixed(2)}_${pos.coords.longitude.toFixed(2)}`;
+        const fallback = await db.weatherCache.get(fallbackId);
+        if (fallback && !unmountedRef.current) {
+          setWeather({ ...fallback, cached: true, offline: true });
           return;
         }
       } catch {}
@@ -58,7 +66,7 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({ state, district })
     loadWeather();
 
     // Auto-refresh every 10 minutes
-    intervalRef.current = setInterval(loadWeather, 10 * 60 * 1000);
+    intervalRef.current = setInterval(() => loadWeather(), 10 * 60 * 1000);
 
     return () => {
       unmountedRef.current = true;
@@ -67,9 +75,9 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({ state, district })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Refresh when settings location changes (triggers GPS re-read)
+  // Refresh when settings location changes — force new fetch
   useEffect(() => {
-    loadWeather();
+    loadWeather(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state, district]);
 
@@ -105,6 +113,7 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({ state, district })
             <span className="truncate">{weather.district ? `${weather.district}, ${weather.state}` : weather.state}</span>
             {weather.offline && <span className="text-[9px] text-amber-500 font-normal flex-shrink-0">Cached Offline</span>}
             {weather.cached && !weather.offline && <span className="text-[9px] text-amber-500 font-normal flex-shrink-0">Cached</span>}
+            {!weather.cached && !weather.offline && <span className="text-[9px] text-emerald-500 font-normal flex-shrink-0">Live Weather</span>}
           </h4>
           {/* Last updated + source + coordinates */}
           <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1">
@@ -133,7 +142,7 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({ state, district })
             {weather.description}
           </span>
           <button
-            onClick={() => { setLoading(true); loadWeather(); }}
+            onClick={() => { setLoading(true); loadWeather(true); }}
             className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
             title="Refresh weather"
           >
