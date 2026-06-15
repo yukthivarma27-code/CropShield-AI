@@ -46,7 +46,7 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({ state, district })
         const pos = await new Promise<GeolocationPosition>((res, rej) =>
           navigator.geolocation.getCurrentPosition(res, rej, { timeout: 3000, maximumAge: 0 })
         );
-        const fallbackId = `gps_${pos.coords.latitude.toFixed(2)}_${pos.coords.longitude.toFixed(2)}`;
+        const fallbackId = `gps_${pos.coords.latitude.toFixed(4)}_${pos.coords.longitude.toFixed(4)}`;
         const fallback = await db.weatherCache.get(fallbackId);
         if (fallback && !unmountedRef.current) {
           setWeather({ ...fallback, cached: true, offline: true });

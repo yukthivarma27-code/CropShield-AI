@@ -150,7 +150,7 @@ export async function getWeatherByGPS(forceRefresh = false): Promise<WeatherData
   // 1. Fresh GPS coordinates
   const pos = await getCurrentPosition();
   const { latitude, longitude } = pos.coords;
-  const gpsId = `gps_${latitude.toFixed(2)}_${longitude.toFixed(2)}`;
+  const gpsId = `gps_${latitude.toFixed(4)}_${longitude.toFixed(4)}`;
 
   console.log('Coordinates', latitude, longitude);
 
@@ -175,6 +175,7 @@ export async function getWeatherByGPS(forceRefresh = false): Promise<WeatherData
 
   const omData = await omRes.json();
   console.log('RAW API RESPONSE', omData);
+  console.log('CURRENT WEATHER', omData.current);
 
   const current = omData.current || {};
   const wmoCode = current.weather_code ?? 0;
