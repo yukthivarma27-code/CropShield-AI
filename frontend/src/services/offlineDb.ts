@@ -56,7 +56,7 @@ export async function getCachedRecommendation(disease: string): Promise<Recommen
   return await db.recommendations.get(disease);
 }
 
-const CACHE_DURATION_MS = 15 * 60 * 1000; // 15 minutes
+const CACHE_DURATION_MS = 10 * 60 * 1000; // 10 minutes
 
 export async function cacheWeather(state: string, district: string, data: WeatherData) {
   try {

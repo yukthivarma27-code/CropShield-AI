@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { WeatherData } from '../../types';
-import { getWeatherByGPS, getWeatherInfo } from '../../services/api';
+import { getWeatherByGPS } from '../../services/api';
 import { Card } from '../common/Card';
-import { Thermometer, Droplets, CloudRain, Wind, AlertCircle, MapPin } from 'lucide-react';
+import { Thermometer, Droplets, CloudRain, Wind, AlertCircle, MapPin, RefreshCw, Clock, Satellite } from 'lucide-react';
 import { useTranslation } from '../../hooks/useTranslation';
 
 interface WeatherWidgetProps {
@@ -10,49 +10,70 @@ interface WeatherWidgetProps {
   district: string;
 }
 
+function formatTime(iso: string): string {
+  try {
+    const d = new Date(iso);
+    const opts: Intl.DateTimeFormatOptions = { hour: '2-digit', minute: '2-digit', timeZoneName: 'short' };
+    return d.toLocaleTimeString('en-IN', opts);
+  } catch {
+    return iso;
+  }
+}
+
 export const WeatherWidget: React.FC<WeatherWidgetProps> = ({ state, district }) => {
   const { t } = useTranslation();
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [gpsActive, setGpsActive] = useState(false);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const unmountedRef = useRef(false);
+
+  const loadWeather = async () => {
+    setError(null);
+    try {
+      const data = await getWeatherByGPS();
+      if (!unmountedRef.current) setWeather(data);
+    } catch (err) {
+      if (unmountedRef.current) return;
+      console.error('Weather load failed:', err);
+      // Try cache (any location) as offline fallback
+      try {
+        const allCached = await (await import('../../services/offlineDb')).db.weatherCache.toArray();
+        const sorted = allCached.sort((a, b) => new Date(b.recorded_at).getTime() - new Date(a.recorded_at).getTime());
+        if (sorted.length > 0) {
+          if (!unmountedRef.current) setWeather({ ...sorted[0], cached: true, offline: true });
+          return;
+        }
+      } catch {}
+      if (!unmountedRef.current) setError('Weather currently unavailable');
+    } finally {
+      if (!unmountedRef.current) setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    async function loadWeather() {
-      setLoading(true);
-      setError(null);
-
-      // Try GPS-first weather (uses Open-Meteo + reverse geocode)
-      try {
-        const data = await getWeatherByGPS(state, district);
-        setWeather(data);
-        setGpsActive(data.state !== state || data.district !== district);
-        setLoading(false);
-        return;
-      } catch {
-        // GPS failed silently — will fall through to settings-based
-      }
-
-      // GPS unavailable — fall back to settings-based weather via backend
-      try {
-        const data = await getWeatherInfo(state, district);
-        setWeather(data);
-        setGpsActive(false);
-      } catch (err) {
-        console.error('Failed to load weather:', err);
-        setError('Could not fetch weather updates');
-      } finally {
-        setLoading(false);
-      }
-    }
+    unmountedRef.current = false;
+    setLoading(true);
 
     loadWeather();
-    // Re-fetch when settings location changes (only if GPS is not available)
-    // Note: district is included so that changing settings re-triggers GPS and fallback
+
+    // Auto-refresh every 10 minutes
+    intervalRef.current = setInterval(loadWeather, 10 * 60 * 1000);
+
+    return () => {
+      unmountedRef.current = true;
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Refresh when settings location changes (triggers GPS re-read)
+  useEffect(() => {
+    loadWeather();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state, district]);
 
-  if (loading) {
+  if (loading && !weather) {
     return (
       <Card className="animate-pulse flex items-center justify-center p-6 text-gray-400">
         Loading localized weather...
@@ -60,7 +81,7 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({ state, district })
     );
   }
 
-  if (error || !weather) {
+  if (error && !weather) {
     return (
       <Card className="border-rose-100 dark:border-rose-950/30 flex items-center gap-3 text-xs text-rose-600 dark:text-rose-400">
         <AlertCircle className="w-5 h-5 flex-shrink-0" />
@@ -68,6 +89,8 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({ state, district })
       </Card>
     );
   }
+
+  if (!weather) return null;
 
   return (
     <Card className="overflow-hidden">
@@ -80,14 +103,43 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({ state, district })
           <h4 className="text-sm font-bold text-gray-900 dark:text-zinc-50 leading-tight truncate flex items-center gap-1">
             <MapPin className="w-3.5 h-3.5 text-primary-500 flex-shrink-0" />
             <span className="truncate">{weather.district ? `${weather.district}, ${weather.state}` : weather.state}</span>
-            {weather.cached && <span className="text-[9px] text-amber-500 font-normal flex-shrink-0">(Cached)</span>}
-            {weather.offline && <span className="text-[9px] text-amber-500 font-normal flex-shrink-0">(Offline)</span>}
-            {gpsActive && !weather.cached && !weather.offline && <span className="text-[9px] text-emerald-500 font-normal flex-shrink-0">(Live GPS)</span>}
+            {weather.offline && <span className="text-[9px] text-amber-500 font-normal flex-shrink-0">Cached Offline</span>}
+            {weather.cached && !weather.offline && <span className="text-[9px] text-amber-500 font-normal flex-shrink-0">Cached</span>}
           </h4>
+          {/* Last updated + source + coordinates */}
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1">
+            <span className="text-[9px] text-gray-400 dark:text-zinc-500 flex items-center gap-0.5">
+              <Clock className="w-3 h-3" />
+              {formatTime(weather.recorded_at)}
+            </span>
+            <span className="text-[9px] text-gray-400 dark:text-zinc-500 flex items-center gap-0.5">
+              <Satellite className="w-3 h-3" />
+              {weather.source || 'Open-Meteo'}
+            </span>
+            {weather.coordinates && (
+              <span className="text-[9px] text-gray-400 dark:text-zinc-500">
+                GPS: {weather.coordinates.lat.toFixed(4)}, {weather.coordinates.lon.toFixed(4)}
+              </span>
+            )}
+            {weather.offline && weather.cached && (
+              <span className="text-[9px] text-amber-500 font-medium">
+                Cache: {formatTime(weather.recorded_at)}
+              </span>
+            )}
+          </div>
         </div>
-        <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-primary-50 text-primary-700 dark:bg-primary-950/20 dark:text-primary-400 capitalize flex-shrink-0 ml-2">
-          {weather.description}
-        </span>
+        <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+          <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-primary-50 text-primary-700 dark:bg-primary-950/20 dark:text-primary-400 capitalize">
+            {weather.description}
+          </span>
+          <button
+            onClick={() => { setLoading(true); loadWeather(); }}
+            className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
+            title="Refresh weather"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 text-gray-400 ${loading ? 'animate-spin' : ''}`} />
+          </button>
+        </div>
       </div>
 
       {/* Primary Metrics Grid */}

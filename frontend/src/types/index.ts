@@ -65,6 +65,8 @@ export interface WeatherData {
   recorded_at: string;
   cached?: boolean;
   offline?: boolean;
+  coordinates?: { lat: number; lon: number };
+  source?: string;
 }
 
 export interface UserProfile {

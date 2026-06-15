@@ -109,38 +109,14 @@ export async function getRecommendation(
   return data;
 }
 
-export async function getWeatherInfo(state: string, district: string): Promise<WeatherData> {
-  const isOnline = await checkOnlineStatus();
-
-  if (!isOnline) {
-    const cached = await offlineDb.getCachedWeather(state, district);
-    if (cached) {
-      console.log('Weather Source: Backend fallback → cache (settings location)');
-      console.log('Weather Data:', cached);
-      return cached;
-    }
-    console.warn('Weather Source: Backend fallback → mock (offline, no cache)');
-    return generateOfflineMockWeather(state, district);
-  }
-
-  const res = await fetch(`${API_BASE_URL}/weather?state=${encodeURIComponent(state)}&district=${encodeURIComponent(district)}`);
-  if (!res.ok) throw new Error('Weather API failed');
-
-  const data = await res.json();
-  console.log('Weather Source: Backend API (settings location)');
-  console.log('Weather Data:', data);
-  await offlineDb.cacheWeather(state, district, data);
-  return data;
-}
-
-// ── GPS‑Based Weather (Open‑Meteo + Nominatim) ──────────────────────────────
+// ── GPS‑Based Weather (Open‑Meteo only) ──────────────────────────────────────
 
 function getCurrentPosition(): Promise<GeolocationPosition> {
   return new Promise((resolve, reject) => {
     navigator.geolocation.getCurrentPosition(resolve, reject, {
       enableHighAccuracy: false,
-      timeout: 8000,
-      maximumAge: 300000,
+      timeout: 10000,
+      maximumAge: 0,
     });
   });
 }
@@ -170,78 +146,70 @@ const WMO_DESCRIPTIONS: Record<number, string> = {
   95: 'thunderstorm', 96: 'thunderstorm with slight hail', 99: 'thunderstorm with heavy hail',
 };
 
-export async function getWeatherByGPS(
-  fallbackState: string,
-  fallbackDistrict: string,
-): Promise<WeatherData> {
-  let pos: GeolocationPosition;
-  try {
-    pos = await getCurrentPosition();
-  } catch {
-    return getWeatherInfo(fallbackState, fallbackDistrict);
-  }
-
+export async function getWeatherByGPS(): Promise<WeatherData> {
+  // 1. Fresh GPS coordinates
+  const pos = await getCurrentPosition();
   const { latitude, longitude } = pos.coords;
   const gpsId = `gps_${latitude.toFixed(2)}_${longitude.toFixed(2)}`;
 
-  // Check cache for GPS coords
+  console.log('Coordinates', latitude, longitude);
+
+  // 2. Check cache (10-min TTL)
   const cached = await offlineDb.db.weatherCache.get(gpsId);
   if (cached) {
     const age = Date.now() - new Date(cached.recorded_at).getTime();
-    if (age < 15 * 60 * 1000) {
-      console.log('Weather Source: Cache (fresh, <15min)');
+    if (age < 10 * 60 * 1000) {
+      console.log('Weather Source: Cache (fresh, <10min)');
       console.log('Weather Data:', cached);
       return { ...cached, cached: true };
     }
     await offlineDb.db.weatherCache.delete(gpsId);
   }
 
-  // Fetch from Open-Meteo directly — no backend dependency
+  // 3. Fetch from Open-Meteo with precipitation_probability
+  const omUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,precipitation_probability,wind_speed_10m,weather_code&timezone=auto`;
+  console.log('Weather API URL', omUrl);
+
+  const omRes = await fetch(omUrl);
+  if (!omRes.ok) throw new Error(`Open-Meteo HTTP ${omRes.status}`);
+
+  const omData = await omRes.json();
+  console.log('Weather Response', omData);
+
+  const current = omData.current || {};
+  const wmoCode = current.weather_code ?? 0;
+
+  // 4. Reverse geocode for display names (best-effort)
+  let city = '', state = '';
   try {
-    const omUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m,weather_code&timezone=auto`;
-    const omRes = await fetch(omUrl);
-    if (!omRes.ok) throw new Error(`Open-Meteo HTTP ${omRes.status}`);
-    const omData = await omRes.json();
-    const current = omData.current || {};
-    const wmoCode = current.weather_code ?? 0;
+    const geo = await reverseGeocode(latitude, longitude);
+    city = geo.city;
+    state = geo.state;
+  } catch { /* best-effort */ }
 
-    // Reverse geocode for location names (best-effort)
-    let city = '', state = '';
-    try {
-      const geo = await reverseGeocode(latitude, longitude);
-      city = geo.city;
-      state = geo.state;
-    } catch { /* best-effort */ }
+  const weather: WeatherData = {
+    state: state || `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
+    district: city || 'Current Location',
+    temperature: current.temperature_2m ?? 0,
+    humidity: current.relative_humidity_2m ?? 0,
+    rain_probability: current.precipitation_probability ?? 0,
+    wind_speed: Math.round((current.wind_speed_10m ?? 0) * 10) / 10,
+    description: WMO_DESCRIPTIONS[wmoCode] || 'unknown',
+    advisory: '',
+    alerts: [],
+    recorded_at: new Date().toISOString(),
+    coordinates: { lat: latitude, lon: longitude },
+    source: 'Open-Meteo',
+  };
 
-    const weather: WeatherData = {
-      state: state || fallbackState,
-      district: city || fallbackDistrict,
-      temperature: Math.round(current.temperature_2m ?? 28),
-      humidity: current.relative_humidity_2m ?? 70,
-      rain_probability: Math.round((current.precipitation ?? 0) * 10),
-      wind_speed: Math.round((current.wind_speed_10m ?? 5) * 10) / 10,
-      description: WMO_DESCRIPTIONS[wmoCode] || 'unknown',
-      advisory: '',
-      alerts: [],
-      recorded_at: new Date().toISOString(),
-    };
+  weather.advisory = generateWeatherAdvisory(weather);
+  weather.alerts = generateWeatherAlerts(weather);
 
-    weather.advisory = generateWeatherAdvisory(weather);
-    weather.alerts = generateWeatherAlerts(weather);
+  console.log('Weather Source: Open-Meteo API (live)');
+  console.log('Weather Data:', weather);
 
-    console.log('Weather Source: Open-Meteo API (live)');
-    console.log('Weather Data:', weather);
-
-    offlineDb.db.weatherCache.put({ ...weather, id: gpsId });
-    return weather;
-  } catch (err) {
-    console.warn('Open-Meteo fetch failed, using fallback:', err);
-    if (cached) {
-      console.log('Weather Source: Cache (stale, served as fallback)');
-      return { ...cached, cached: true };
-    }
-    return getWeatherInfo(fallbackState, fallbackDistrict);
-  }
+  await offlineDb.db.weatherCache.put({ ...weather, id: gpsId });
+  return weather;
 }
 
 function generateWeatherAdvisory(w: WeatherData): string {
@@ -258,17 +226,16 @@ function generateWeatherAdvisory(w: WeatherData): string {
 
 function generateWeatherAlerts(w: WeatherData): WeatherAlert[] {
   const alerts: WeatherAlert[] = [];
-  if (w.humidity > 85) alerts.push({ type: 'warning', message: 'High humidity may promote fungal growth. Inspect crops daily.' });
-  if (w.rain_probability > 70) alerts.push({ type: 'caution', message: 'Rain expected within 24 hours. Delay pesticide spraying.' });
-  if (w.temperature > 38) alerts.push({ type: 'warning', message: 'Extreme heat. Ensure adequate irrigation and shade for sensitive crops.' });
-  if (w.wind_speed > 12) alerts.push({ type: 'info', message: 'Strong winds. Secure crop support structures.' });
+  if (w.humidity > 85) alerts.push({ type: 'warning' as const, message: 'High humidity may promote fungal growth. Inspect crops daily.' });
+  if (w.rain_probability > 70) alerts.push({ type: 'caution' as const, message: 'Rain expected within 24 hours. Delay pesticide spraying.' });
+  if (w.temperature > 38) alerts.push({ type: 'warning' as const, message: 'Extreme heat. Ensure adequate irrigation and shade for sensitive crops.' });
+  if (w.wind_speed > 12) alerts.push({ type: 'info' as const, message: 'Strong winds. Secure crop support structures.' });
   return alerts;
 }
 
 export async function getTTSAudio(text: string, lang = 'en'): Promise<string> {
   const isOnline = await checkOnlineStatus();
-  if (!isOnline) return ''; // No TTS offline unless browser synthesis is used
-
+  if (!isOnline) return '';
   try {
     const res = await fetch(`${API_BASE_URL}/voice/tts?text=${encodeURIComponent(text)}&lang=${lang}`);
     if (res.ok) {
@@ -281,7 +248,7 @@ export async function getTTSAudio(text: string, lang = 'en'): Promise<string> {
   return '';
 }
 
-// ── Mock Fallbacks for Offline ──────────────────────────────────────────────
+// ── Offline Mock Fallbacks (prediction/recommendation only) ──────────────────
 function generateOfflineMockResult(crop = 'tomato'): PredictionResult {
   const diseases = ['Early Blight', 'Late Blight', 'Bacterial Spot', 'Leaf Mold', 'Powdery Mildew', 'Rust'];
   const disease = diseases[Math.floor(Math.random() * diseases.length)];
@@ -334,20 +301,5 @@ function generateOfflineMockRecommendation(disease: string, crop = 'tomato'): Re
       'Remove and destroy infected plant debris'
     ],
     weather_advisory: 'Offline mode: Keep crop area dry if humidity is high.'
-  };
-}
-
-function generateOfflineMockWeather(state: string, district: string): WeatherData {
-  return {
-    state,
-    district,
-    temperature: 28.5,
-    humidity: 72,
-    rain_probability: 20,
-    wind_speed: 8.5,
-    description: 'partly cloudy (cached offline)',
-    advisory: 'Offline Advisory: Balanced irrigation is recommended under cloud cover.',
-    alerts: [],
-    recorded_at: new Date().toISOString()
   };
 }
