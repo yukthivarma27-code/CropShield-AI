@@ -43,7 +43,13 @@ export const PredictionCard: React.FC<PredictionCardProps> = ({ result, imageUrl
           key={imageUrl || 'fallback'}
           src={imageUrl || result.image_url}
           alt={result.disease}
-          onError={onImageError}
+          onError={() => {
+            console.error("IMAGE FAILED TO LOAD", { imageUrl, result_image_url: result.image_url });
+            onImageError?.();
+          }}
+          onLoad={() => {
+            console.log("IMAGE LOADED", imageUrl || result.image_url);
+          }}
           className="w-full h-full object-cover"
         />
         {result.offline && (

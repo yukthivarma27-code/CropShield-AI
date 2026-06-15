@@ -4,14 +4,16 @@ export function useCamera() {
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
 
   const startCamera = useCallback(async () => {
     setError(null);
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' }, // Default to back camera for leaves
+        video: { facingMode: 'environment' },
         audio: false
       });
+      streamRef.current = mediaStream;
       setStream(mediaStream);
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
@@ -24,11 +26,12 @@ export function useCamera() {
   }, []);
 
   const stopCamera = useCallback(() => {
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
       setStream(null);
     }
-  }, [stream]);
+  }, []);
 
   const capturePhoto = useCallback((): string | null => {
     if (!videoRef.current) return null;
@@ -41,10 +44,8 @@ export function useCamera() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return null;
 
-    // Flip horizontally if front camera is used (optional, not done here for back camera)
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    // Convert to jpeg base64
     return canvas.toDataURL('image/jpeg', 0.85);
   }, []);
 

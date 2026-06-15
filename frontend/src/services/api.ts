@@ -18,6 +18,11 @@ export async function predictCropDisease(
   state?: string,
   district?: string
 ): Promise<PredictionResult> {
+  if (typeof fileOrBase64 === 'string') {
+    console.log("PREDICT INPUT: base64 string, length=" + fileOrBase64.length);
+  } else {
+    console.log("PREDICT INPUT:", { name: fileOrBase64.name, type: fileOrBase64.type, size: fileOrBase64.size });
+  }
   const formData = new FormData();
   if (typeof fileOrBase64 === 'string') {
     formData.append('image_base64', fileOrBase64);
@@ -49,6 +54,7 @@ export async function predictCropDisease(
       ...result,
       image_url: result.image_url ? `${API_BASE_URL}${result.image_url}` : '',
     };
+    console.log("PREDICTION RESULT:", { result_image_url: result.image_url, fullResult_image_url: fullResult.image_url, API_BASE_URL });
 
     await offlineDb.saveOfflinePrediction(fullResult);
 

@@ -70,6 +70,7 @@ export const PredictionPage: React.FC<PredictionPageProps> = ({
     }
 
     const imageUrl = URL.createObjectURL(file);
+    console.log("PREVIEW URL CREATED:", imageUrl, { fileName: file.name, fileType: file.type, fileSize: file.size });
     setPreviewImage(imageUrl);
 
     setLoading(true);
