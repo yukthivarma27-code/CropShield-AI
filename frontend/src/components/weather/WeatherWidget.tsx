@@ -123,7 +123,7 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({ state, district })
             </span>
             <span className="text-[9px] text-gray-400 dark:text-zinc-500 flex items-center gap-0.5">
               <Satellite className="w-3 h-3" />
-              {weather.source || 'Open-Meteo'}
+              {weather.source || 'WeatherAPI.com'}
             </span>
             {weather.coordinates && (
               <span className="text-[9px] text-gray-400 dark:text-zinc-500">

@@ -109,7 +109,9 @@ export async function getRecommendation(
   return data;
 }
 
-// ── GPS‑Based Weather (Open‑Meteo only) ──────────────────────────────────────
+// ── GPS‑Based Weather (WeatherAPI.com) ──────────────────────────────────────
+
+const WEATHER_API_KEY = import.meta.env.VITE_WEATHER_API_KEY || '';
 
 function getCurrentPosition(): Promise<GeolocationPosition> {
   return new Promise((resolve, reject) => {
@@ -134,27 +136,15 @@ async function reverseGeocode(lat: number, lon: number): Promise<{ city: string;
   return { city, state };
 }
 
-const WMO_DESCRIPTIONS: Record<number, string> = {
-  0: 'clear sky', 1: 'mainly clear', 2: 'partly cloudy', 3: 'overcast',
-  45: 'foggy', 48: 'depositing rime fog',
-  51: 'light drizzle', 53: 'moderate drizzle', 55: 'dense drizzle',
-  56: 'light freezing drizzle', 57: 'dense freezing drizzle',
-  61: 'slight rain', 63: 'moderate rain', 65: 'heavy rain',
-  66: 'light freezing rain', 67: 'heavy freezing rain',
-  71: 'slight snow', 73: 'moderate snow', 75: 'heavy snow',
-  80: 'slight rain showers', 81: 'moderate rain showers', 82: 'violent rain showers',
-  95: 'thunderstorm', 96: 'thunderstorm with slight hail', 99: 'thunderstorm with heavy hail',
-};
-
 export async function getWeatherByGPS(forceRefresh = false): Promise<WeatherData> {
   // 1. Fresh GPS coordinates
   const pos = await getCurrentPosition();
   const { latitude, longitude } = pos.coords;
   const gpsId = `gps_${latitude.toFixed(4)}_${longitude.toFixed(4)}`;
 
-  console.log('Coordinates', latitude, longitude);
+  console.log('GPS', latitude, longitude);
 
-  // 2. Check cache — skip if forceRefresh (refresh button / location change)
+  // 2. Check cache — skip if forceRefresh
   if (!forceRefresh) {
     const cached = await offlineDb.db.weatherCache.get(gpsId);
     if (cached) {
@@ -166,21 +156,30 @@ export async function getWeatherByGPS(forceRefresh = false): Promise<WeatherData
     }
   }
 
-  // 3. Fetch from Open-Meteo
-  const omUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,precipitation_probability,wind_speed_10m,weather_code&timezone=auto`;
-  console.log('Weather API URL', omUrl);
+  // 3. Fetch from WeatherAPI.com
+  const apiUrl = `https://api.weatherapi.com/v1/forecast.json?key=${WEATHER_API_KEY}&q=${latitude},${longitude}&days=1&aqi=no&alerts=no`;
+  console.log('Weather API URL', apiUrl);
 
-  const omRes = await fetch(omUrl);
-  if (!omRes.ok) throw new Error(`Open-Meteo HTTP ${omRes.status}`);
+  const res = await fetch(apiUrl);
+  if (!res.ok) throw new Error(`WeatherAPI HTTP ${res.status}`);
 
-  const omData = await omRes.json();
-  console.log('RAW API RESPONSE', omData);
-  console.log('CURRENT WEATHER', omData.current);
+  const data = await res.json();
+  console.log('WEATHER API RESPONSE', data);
 
-  const current = omData.current || {};
-  const wmoCode = current.weather_code ?? 0;
+  const current = data.current || {};
+  const forecastDay = data.forecast?.forecastday?.[0]?.day || {};
 
-  console.log('Humidity From API', current.relative_humidity_2m);
+  const temperature = current.temp_c ?? 0;
+  const humidity = current.humidity ?? 0;
+  const windSpeed = Math.round((current.wind_kph ?? 0) * 10) / 10;
+  const description = current.condition?.text || 'unknown';
+  const rainProbability = forecastDay.daily_chance_of_rain ?? 0;
+  const lastUpdated = current.last_updated || new Date().toISOString();
+
+  console.log('TEMP', temperature);
+  console.log('HUMIDITY', humidity);
+  console.log('RAIN', rainProbability);
+  console.log('WIND', windSpeed);
 
   // 4. Reverse geocode for display names (best-effort)
   let city = '', state = '';
@@ -193,26 +192,22 @@ export async function getWeatherByGPS(forceRefresh = false): Promise<WeatherData
   const weather: WeatherData = {
     state: state || `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
     district: city || 'Current Location',
-    temperature: current.temperature_2m ?? 0,
-    humidity: current.relative_humidity_2m ?? 0,
-    rain_probability: current.precipitation_probability ?? 0,
-    wind_speed: Math.round((current.wind_speed_10m ?? 0) * 10) / 10,
-    description: WMO_DESCRIPTIONS[wmoCode] || 'unknown',
+    temperature,
+    humidity,
+    rain_probability: rainProbability,
+    wind_speed: windSpeed,
+    description,
     advisory: '',
     alerts: [],
-    recorded_at: new Date().toISOString(),
+    recorded_at: lastUpdated,
     coordinates: { lat: latitude, lon: longitude },
-    source: 'Open-Meteo',
+    source: 'WeatherAPI.com',
   };
 
   weather.advisory = generateWeatherAdvisory(weather);
   weather.alerts = generateWeatherAlerts(weather);
 
   console.log('Location:', `${weather.district}, ${weather.state}`);
-  console.log('Temperature:', weather.temperature);
-  console.log('Humidity:', weather.humidity);
-  console.log('Rain Probability:', weather.rain_probability);
-  console.log('Wind Speed:', weather.wind_speed);
   console.log('Updated At:', weather.recorded_at);
 
   await offlineDb.db.weatherCache.put({ ...weather, id: gpsId });
