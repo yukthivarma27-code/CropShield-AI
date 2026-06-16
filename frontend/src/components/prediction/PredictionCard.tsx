@@ -78,7 +78,7 @@ export const PredictionCard: React.FC<PredictionCardProps> = ({ result, imageUrl
 
         {/* Top 3 list */}
         {result.top_3_predictions && result.top_3_predictions.length > 1 && (
-          <div className="pt-2 border-t border-gray-50 dark:border-zinc-850 space-y-2">
+          <div className="pt-2 border-t border-gray-50 dark:border-zinc-800/50 space-y-2">
             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Alternative predictions</span>
             <div className="space-y-1.5">
               {result.top_3_predictions.map((p, i) => (

@@ -60,7 +60,7 @@ export const TreatmentPanel: React.FC<TreatmentPanelProps> = ({
         <Card title={t('chemical_treatment')}>
           <div className="space-y-4">
             {recommendation.chemical_treatments.map((t, idx) => (
-              <div key={idx} className="pb-3 last:pb-0 last:border-b-0 border-b border-gray-50 dark:border-zinc-850">
+              <div key={idx} className="pb-3 last:pb-0 last:border-b-0 border-b border-gray-50 dark:border-zinc-800/50">
                 <h4 className="text-xs font-bold text-gray-900 dark:text-zinc-50">{t.name}</h4>
                 <div className="grid grid-cols-2 gap-2 mt-1.5 text-[11px] text-gray-500 dark:text-zinc-400">
                   {t.active_ingredient && (

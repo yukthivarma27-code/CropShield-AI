@@ -23,7 +23,7 @@ export const LanguageSelector: React.FC = () => {
             className={`py-2 px-1 text-xs font-bold rounded-xl transition-all duration-200 ${
               isSelected
                 ? 'bg-primary-600 text-white shadow-sm shadow-primary-500/10'
-                : 'text-gray-600 hover:bg-gray-100 dark:text-zinc-400 dark:hover:bg-zinc-850'
+                : 'text-gray-600 hover:bg-gray-100 dark:text-zinc-400 dark:hover:bg-zinc-800'
             }`}
           >
             {l.nativeName}

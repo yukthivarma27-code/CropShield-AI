@@ -24,8 +24,8 @@ export const HomePage: React.FC<HomePageProps> = ({ setActivePage, state, distri
           <Sprout className="w-40 h-40" />
         </div>
         <div className="relative z-10 space-y-2">
-          <h2 className="text-xl font-bold tracking-tight">Protect Your Harvest</h2>
-          <p className="text-xs text-primary-100/90 leading-relaxed max-w-[85%]">
+          <h2 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">Protect Your Harvest</h2>
+          <p className="text-xs text-gray-600 dark:text-zinc-300 leading-relaxed max-w-[85%]">
             Detect leaf diseases instantly using our AI. Get organic treatments, chemical doses, and real-time advisories.
           </p>
           <div className="pt-2">

@@ -108,7 +108,7 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({ state, district })
           <span className="text-[10px] text-gray-400 dark:text-zinc-500 uppercase tracking-wider font-semibold">
             {t('weather_advisory')}
           </span>
-          <h4 className="text-sm font-bold text-gray-900 dark:text-zinc-50 leading-tight truncate flex items-center gap-1">
+          <h4 className="text-sm font-bold text-gray-900 dark:text-white leading-tight truncate flex items-center gap-1">
             <MapPin className="w-3.5 h-3.5 text-primary-500 flex-shrink-0" />
             <span className="truncate">{weather.district ? `${weather.district}, ${weather.state}` : weather.state}</span>
             {weather.offline && <span className="text-[9px] text-amber-500 font-normal flex-shrink-0">Cached Offline</span>}
@@ -153,24 +153,24 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({ state, district })
 
       {/* Primary Metrics Grid */}
       <div className="grid grid-cols-4 gap-3 my-4">
-        <div className="flex flex-col items-center p-2 rounded-2xl bg-gray-50 dark:bg-zinc-850">
+        <div className="flex flex-col items-center p-2 rounded-2xl bg-white dark:bg-zinc-800">
           <Thermometer className="w-5 h-5 text-amber-500 mb-1" />
-          <span className="text-xs font-extrabold text-gray-900 dark:text-zinc-50">{weather.temperature}°C</span>
+          <span className="text-xs font-extrabold text-gray-900 dark:text-white">{weather.temperature}°C</span>
           <span className="text-[8px] text-gray-400 dark:text-zinc-500 uppercase font-medium">Temp</span>
         </div>
-        <div className="flex flex-col items-center p-2 rounded-2xl bg-gray-50 dark:bg-zinc-850">
+        <div className="flex flex-col items-center p-2 rounded-2xl bg-white dark:bg-zinc-800">
           <Droplets className="w-5 h-5 text-blue-500 mb-1" />
-          <span className="text-xs font-extrabold text-gray-900 dark:text-zinc-50">{weather.humidity}%</span>
+          <span className="text-xs font-extrabold text-gray-900 dark:text-white">{weather.humidity}%</span>
           <span className="text-[8px] text-gray-400 dark:text-zinc-500 uppercase font-medium">Humidity</span>
         </div>
-        <div className="flex flex-col items-center p-2 rounded-2xl bg-gray-50 dark:bg-zinc-850">
+        <div className="flex flex-col items-center p-2 rounded-2xl bg-white dark:bg-zinc-800">
           <CloudRain className="w-5 h-5 text-indigo-500 mb-1" />
-          <span className="text-xs font-extrabold text-gray-900 dark:text-zinc-50">{weather.rain_probability}%</span>
+          <span className="text-xs font-extrabold text-gray-900 dark:text-white">{weather.rain_probability}%</span>
           <span className="text-[8px] text-gray-400 dark:text-zinc-500 uppercase font-medium">Rain Prob</span>
         </div>
-        <div className="flex flex-col items-center p-2 rounded-2xl bg-gray-50 dark:bg-zinc-850">
+        <div className="flex flex-col items-center p-2 rounded-2xl bg-white dark:bg-zinc-800">
           <Wind className="w-5 h-5 text-teal-500 mb-1" />
-          <span className="text-xs font-extrabold text-gray-900 dark:text-zinc-50">{weather.wind_speed}km/h</span>
+          <span className="text-xs font-extrabold text-gray-900 dark:text-white">{weather.wind_speed}km/h</span>
           <span className="text-[8px] text-gray-400 dark:text-zinc-500 uppercase font-medium">Wind</span>
         </div>
       </div>
