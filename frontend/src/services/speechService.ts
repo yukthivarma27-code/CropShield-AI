@@ -15,6 +15,7 @@ interface SpeechRecognitionEvent {
 
 export class SpeechService {
   private recognition: any = null;
+  private _muted = false;
 
   constructor() {
     // Initialize SpeechRecognition
@@ -24,6 +25,14 @@ export class SpeechService {
       this.recognition.continuous = false;
       this.recognition.interimResults = false;
     }
+  }
+
+  setMuted(muted: boolean) {
+    this._muted = muted;
+  }
+
+  isMuted(): boolean {
+    return this._muted;
   }
 
   /**
@@ -37,6 +46,8 @@ export class SpeechService {
 
     // Cancel current speaking
     window.speechSynthesis.cancel();
+
+    if (this._muted) return;
 
     const utterance = new SpeechSynthesisUtterance(text);
 

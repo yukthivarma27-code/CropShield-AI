@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Mic, MicOff, VolumeX } from 'lucide-react';
+import { Mic, MicOff, Volume2, VolumeX } from 'lucide-react';
 import { Card } from '../common/Card';
 import { Button } from '../common/Button';
 import { speechService } from '../../services/speechService';
@@ -17,6 +17,10 @@ export const VoiceAssistant: React.FC = () => {
     { sender: 'assistant', text: 'Namaste! I am your AgriVision crop assistant. How can I help you today?' }
   ]);
   const [speechSupported, setSpeechSupported] = useState<boolean>(true);
+  const [isMuted, setIsMuted] = useState<boolean>(() => {
+    const saved = localStorage.getItem('audioMuted');
+    return saved === 'true';
+  });
 
   useEffect(() => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -24,6 +28,22 @@ export const VoiceAssistant: React.FC = () => {
       setSpeechSupported(false);
     }
   }, []);
+
+  useEffect(() => {
+    speechService.setMuted(isMuted);
+    localStorage.setItem('audioMuted', String(isMuted));
+  }, [isMuted]);
+
+  const toggleMute = () => {
+    if (isMuted) {
+      speechService.setMuted(false);
+      setIsMuted(false);
+    } else {
+      speechService.stopSpeaking();
+      speechService.setMuted(true);
+      setIsMuted(true);
+    }
+  };
 
   const handleStartListening = () => {
     setIsListening(true);
@@ -71,10 +91,6 @@ export const VoiceAssistant: React.FC = () => {
     speechService.speak(responseText, lang);
   };
 
-  const stopSpeaking = () => {
-    speechService.stopSpeaking();
-  };
-
   return (
     <Card title={t('voice_assistant')} className="flex flex-col h-[400px] justify-between">
       {/* Messages Window */}
@@ -118,8 +134,14 @@ export const VoiceAssistant: React.FC = () => {
             {isListening ? t('assistant_listening') : t('speak_now')}
           </Button>
 
-          <Button variant="secondary" onClick={stopSpeaking} icon={<VolumeX className="w-4 h-4" />}>
-            Mute
+          <Button
+            variant="secondary"
+            onClick={toggleMute}
+            title={isMuted ? 'Enable audio' : 'Disable audio'}
+            className={isMuted ? 'bg-gray-200 dark:bg-zinc-700 text-gray-500 dark:text-zinc-400' : ''}
+            icon={isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+          >
+            {isMuted ? 'Unmute' : 'Mute'}
           </Button>
         </div>
       </div>
