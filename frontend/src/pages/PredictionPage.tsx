@@ -61,7 +61,8 @@ export const PredictionPage: React.FC<PredictionPageProps> = ({
     return null;
   };
 
-  const validateImageContent = (file: File): Promise<string | null> => {
+  const validateCropImage = (file: File): Promise<string | null> => {
+    console.log("VALIDATION START");
     return new Promise((resolve) => {
       const img = new Image();
       const url = URL.createObjectURL(file);
@@ -69,6 +70,86 @@ export const PredictionPage: React.FC<PredictionPageProps> = ({
         URL.revokeObjectURL(url);
         if (img.naturalWidth < 224 || img.naturalHeight < 224) {
           resolve(`Image too small (${img.naturalWidth}x${img.naturalHeight}). Minimum 224x224px required for analysis.`);
+          return;
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) { resolve(null); return; }
+        ctx.drawImage(img, 0, 0);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const pixels = imageData.data;
+        const total = canvas.width * canvas.height;
+        let greenPixels = 0, naturalPixels = 0, whitePixels = 0, skinPixels = 0;
+        let edgeSum = 0;
+        for (let y = 1; y < canvas.height - 1; y++) {
+          for (let x = 1; x < canvas.width - 1; x++) {
+            const i = (y * canvas.width + x) * 4;
+            const r = pixels[i], g = pixels[i + 1], b = pixels[i + 2];
+            const rn = r / 255, gn = g / 255, bn = b / 255;
+            const cmax = Math.max(rn, gn, bn);
+            const cmin = Math.min(rn, gn, bn);
+            const diff = cmax - cmin;
+            let h = 0, s = 0, v = cmax;
+            if (diff === 0) h = 0;
+            else if (cmax === rn) h = 60 * (((gn - bn) / diff) % 6);
+            else if (cmax === gn) h = 60 * ((bn - rn) / diff + 2);
+            else h = 60 * ((rn - gn) / diff + 4);
+            if (h < 0) h += 360;
+            s = cmax === 0 ? 0 : diff / cmax;
+            const hDeg = h, sPct = s * 100, vPct = v * 100;
+            if (hDeg >= 50 && hDeg <= 120 && sPct >= 15 && vPct >= 15) greenPixels++;
+            if ((hDeg >= 50 && hDeg <= 120 && sPct >= 15 && vPct >= 15) ||
+                (hDeg >= 28 && hDeg < 50 && sPct >= 25 && vPct >= 25) ||
+                (hDeg >= 5 && hDeg < 28 && sPct >= 30 && vPct >= 10)) naturalPixels++;
+            if (vPct > 85 && sPct < 12) whitePixels++;
+            if (hDeg >= 0 && hDeg <= 25 && sPct >= 8 && sPct <= 60 && vPct >= 25 && vPct <= 80) skinPixels++;
+            const li = ((y - 1) * canvas.width + (x - 1)) * 4;
+            const gray = Math.round(0.299 * pixels[li] + 0.587 * pixels[li + 1] + 0.114 * pixels[li + 2]);
+            const ri = ((y) * canvas.width + (x)) * 4;
+            const grayR = Math.round(0.299 * pixels[ri] + 0.587 * pixels[ri + 1] + 0.114 * pixels[ri + 2]);
+            const bi = ((y) * canvas.width + (x - 1)) * 4;
+            const grayB = Math.round(0.299 * pixels[bi] + 0.587 * pixels[bi + 1] + 0.114 * pixels[bi + 2]);
+            const dx = Math.abs(grayR - gray);
+            const dy = Math.abs(grayB - gray);
+            edgeSum += Math.sqrt(dx * dx + dy * dy) > 50 ? 1 : 0;
+          }
+        }
+        const greenRatio = greenPixels / total;
+        const naturalRatio = naturalPixels / total;
+        const whiteRatio = whitePixels / total;
+        const skinRatio = skinPixels / total;
+        const edgeDensity = edgeSum / ((canvas.width - 2) * (canvas.height - 2));
+        console.log("IS PLANT:", { greenRatio, naturalRatio, whiteRatio, skinRatio, edgeDensity });
+        if (whiteRatio > 0.35 && naturalRatio < 0.10) {
+          console.log("VALIDATION FAILED: white document background");
+          resolve("Invalid image. Please upload a clear crop leaf image.");
+          return;
+        }
+        if (skinRatio > 0.15) {
+          console.log("VALIDATION FAILED: skin/face detected");
+          resolve("Invalid image. Please upload a clear crop leaf image.");
+          return;
+        }
+        if (edgeDensity > 0.35) {
+          console.log("VALIDATION FAILED: excessive edges (screenshot/text)");
+          resolve("Invalid image. Please upload a clear crop leaf image.");
+          return;
+        }
+        if (edgeDensity > 0.20 && naturalRatio < 0.10) {
+          console.log("VALIDATION FAILED: text-heavy image");
+          resolve("Invalid image. Please upload a clear crop leaf image.");
+          return;
+        }
+        if (naturalRatio < 0.05) {
+          console.log("VALIDATION FAILED: no plant content detected");
+          resolve("Invalid image. Please upload a clear crop leaf image.");
+          return;
+        }
+        if (whiteRatio > 0.20 && greenRatio < 0.05) {
+          console.log("VALIDATION FAILED: document with colored accent");
+          resolve("Invalid image. Please upload a clear crop leaf image.");
           return;
         }
         resolve(null);
@@ -89,9 +170,9 @@ export const PredictionPage: React.FC<PredictionPageProps> = ({
       return;
     }
 
-    const contentError = await validateImageContent(file);
-    if (contentError) {
-      setImageError(contentError);
+    const cropError = await validateCropImage(file);
+    if (cropError) {
+      setImageError(cropError);
       return;
     }
 
