@@ -170,12 +170,17 @@ export async function getWeatherByGPS(forceRefresh = false): Promise<WeatherData
   const omUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,precipitation_probability,wind_speed_10m,weather_code&timezone=auto`;
   console.log('Weather API URL', omUrl);
 
-  const omRes = await fetch(omUrl);
-  if (!omRes.ok) throw new Error(`Open-Meteo HTTP ${omRes.status}`);
-
-  const omData = await omRes.json();
-  console.log('RAW API RESPONSE', omData);
-  console.log('CURRENT WEATHER', omData.current);
+  let omRes: Response;
+  let omData: any;
+  try {
+    omRes = await fetch(omUrl);
+    if (!omRes.ok) throw new Error(`Open-Meteo HTTP ${omRes.status}`);
+    omData = await omRes.json();
+  } catch (err) {
+    console.log('Weather Error', err);
+    throw err;
+  }
+  console.log('Weather Response', omData);
 
   const current = omData.current || {};
   const wmoCode = current.weather_code ?? 0;

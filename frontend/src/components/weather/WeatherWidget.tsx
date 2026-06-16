@@ -53,7 +53,7 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({ state, district })
           return;
         }
       } catch {}
-      if (!unmountedRef.current) setError('Weather currently unavailable');
+      if (!unmountedRef.current) setError(err instanceof Error ? err.message : String(err));
     } finally {
       if (!unmountedRef.current) setLoading(false);
     }
@@ -93,7 +93,7 @@ export const WeatherWidget: React.FC<WeatherWidgetProps> = ({ state, district })
     return (
       <Card className="border-rose-100 dark:border-rose-950/30 flex items-center gap-3 text-xs text-rose-600 dark:text-rose-400">
         <AlertCircle className="w-5 h-5 flex-shrink-0" />
-        <span>Weather information currently unavailable.</span>
+        <span className="flex-1">{error || 'Weather information currently unavailable.'}</span>
       </Card>
     );
   }
