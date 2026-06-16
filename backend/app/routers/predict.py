@@ -51,9 +51,15 @@ async def predict_disease(
         raise HTTPException(status_code=400, detail=f"Image processing failed: {str(e)}")
 
     # Validate image is a crop leaf/plant
-    is_valid, validation_msg, _metrics = validate_crop_image(pil_image)
+    is_valid, validation_msg, _metrics, confidence = validate_crop_image(pil_image)
     if not is_valid:
         raise HTTPException(status_code=400, detail=validation_msg)
+
+    if confidence < 80.0:
+        raise HTTPException(
+            status_code=400,
+            detail="Please upload a clear crop leaf image for disease detection.",
+        )
 
     # Preprocess
     processed = preprocess_for_prediction(pil_image)

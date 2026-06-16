@@ -61,11 +61,37 @@ export const PredictionPage: React.FC<PredictionPageProps> = ({
     return null;
   };
 
+  const validateImageContent = (file: File): Promise<string | null> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        if (img.naturalWidth < 224 || img.naturalHeight < 224) {
+          resolve(`Image too small (${img.naturalWidth}x${img.naturalHeight}). Minimum 224x224px required for analysis.`);
+          return;
+        }
+        resolve(null);
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        resolve('Could not read image. The file may be corrupt.');
+      };
+      img.src = url;
+    });
+  };
+
   const handleImageSelected = async (file: File) => {
     setImageError('');
     const error = validateImageFile(file);
     if (error) {
       setImageError(error);
+      return;
+    }
+
+    const contentError = await validateImageContent(file);
+    if (contentError) {
+      setImageError(contentError);
       return;
     }
 
